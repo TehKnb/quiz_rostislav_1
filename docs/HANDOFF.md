@@ -18,25 +18,25 @@
 
 | Шлях | Призначення |
 |---|---|
-| `source/` | 121 оригінальний відстежуваний файл поточного commit |
-| `source/app/page.tsx` | Головна, проходження, фінал, форма, модальні вікна, експорт TXT |
-| `source/app/globals.css` | Вся верстка, темний фон, червоні акценти, адаптивність, блюр |
-| `source/app/lib/engine.ts` | Типи, гілки, валідація, бали, пріоритети, результати |
-| `source/app/lib/source.json` | Тексти запитань і варіантів для ніш |
-| `source/app/api/leads/route.ts` | POST заявки: валідація, розрахунок, передача на webhook |
-| `source/app/api/personalize/route.ts`, `source/app/lib/custom-questions.ts` | Формулювання запитань під власну сферу через OpenAI |
-| `source/app/lib/ai-report.ts`, `source/app/lib/ai-generate.ts` | Генерація пояснень у результаті через OpenAI: промпти, перевірка відповідей, запасний сценарій |
-| `source/app/lib/lead-payload.ts` | Формування payload: Q1–Q20, A1–A20, `Ai Text` |
-| `source/app/lib/video-cases.ts`, `source/app/video-cases.tsx` | Відеокейси за сферами та слайдер |
-| `source/tests/engine.cjs`, `source/tests/lead-payload.mjs` | Контроль логіки, персоналізації, payload і кейсів |
-| `source/public/knb-logo.svg`, `favicon.svg` | Логотип та іконка сайта |
-| `source/package.json`, `pnpm-lock.yaml` | Залежності та їх зафіксовані версії |
-| `source/app/health/route.ts` | `/health` для перевірки готовності на Railway |
+| Корінь репозиторію | Застосунок Next.js: `app/`, `components/`, `hooks/`, `lib/`, `public/`, `tests/`, `vendor/` і конфігурації |
+| `app/page.tsx` | Головна, проходження, фінал, форма, модальні вікна, експорт TXT |
+| `app/globals.css` | Вся верстка, темний фон, червоні акценти, адаптивність, блюр |
+| `app/lib/engine.ts` | Типи, гілки, валідація, бали, пріоритети, результати |
+| `app/lib/source.json` | Тексти запитань і варіантів для ніш |
+| `app/api/leads/route.ts` | POST заявки: валідація, розрахунок, передача на webhook |
+| `app/api/personalize/route.ts`, `app/lib/custom-questions.ts` | Формулювання запитань під власну сферу через OpenAI |
+| `app/lib/ai-report.ts`, `app/lib/ai-generate.ts` | Генерація пояснень у результаті через OpenAI: промпти, перевірка відповідей, запасний сценарій |
+| `app/lib/lead-payload.ts` | Формування payload: Q1–Q20, A1–A20, `Ai Text` |
+| `app/lib/video-cases.ts`, `app/video-cases.tsx` | Відеокейси за сферами та слайдер |
+| `tests/engine.cjs`, `tests/lead-payload.mjs` | Контроль логіки, персоналізації, payload і кейсів |
+| `public/knb-logo.svg`, `favicon.svg` | Логотип та іконка сайта |
+| `package.json`, `pnpm-lock.yaml` | Залежності та їх зафіксовані версії |
+| `app/health/route.ts` | `/health` для перевірки готовності на Railway |
 | `docs/questions-all-branches.json` | 55 контекстів × 20 запитань із точними індексами відповідей |
 | `docs/QUESTIONS.md` | Читабельний каталог 22 гілок: 11 варіантів сфери × сам/команда |
 | `examples/` | Синтетичні дані API, приклад payload webhook та контрольні результати |
 
-Оригінальний `source/README.md` належить стартовому шаблону. Для передачі використовувати цю інструкцію й кореневий README. Не всі компоненти `components/ui/` використовуються квізом; вони збережені для точності вихідного дерева. Нові та майбутні правки робити у власному репозиторії команди.
+Для передачі використовувати цю інструкцію й кореневий README. Не всі компоненти `components/ui/` використовуються квізом; вони збережені для точності вихідного дерева. Нові та майбутні правки робити у власному репозиторії команди.
 
 ## 3. Технології й запуск
 
@@ -44,7 +44,7 @@
 
 Вимоги пакета: Node.js 22; менеджер пакетів — pnpm 11.25.0. Команді варто взяти актуальний підтримуваний Node, сумісний із цим lockfile, і спочатку відтворити залежності без їх оновлення. Для встановлення потрібен доступ до npm-реєстру. Не використовуйте автоматичне масове оновлення залежностей до звірки поведінки.
 
-З кореня `source/`, після встановлення Node і pnpm:
+З кореня репозиторію, після встановлення Node і pnpm:
 
 ```bash
 pnpm install --frozen-lockfile
@@ -54,7 +54,7 @@ pnpm exec tsc --noEmit
 pnpm build
 ```
 
-Для локальної роботи створіть у `source/` файл `.env.local` (ігнорується git, зразок — `.env.example`):
+Для локальної роботи створіть у корені репозиторію файл `.env.local` (ігнорується git, зразок — `.env.example`):
 
 ```bash
 BUSINESS_REVIEW_WEBHOOK_URL=https://example.com/your-test-webhook
@@ -198,9 +198,9 @@ Webhook викликається лише на сервері. Таймаут �
 
 Код працює як звичайний Node.js-застосунок Next.js. Dockerfile не потрібен: Railway збирає проєкт через Railpack.
 
-1. Завантажте проєкт у GitHub. У корені репозиторію лишається тека `source/`; файли `.env*` не потрапляють у git, крім `.env.example`.
+1. Завантажте проєкт у GitHub. Застосунок лежить у корені репозиторію; файли `.env*` не потрапляють у git, крім `.env.example`.
 2. У Railway: New Project → Deploy from GitHub repo → оберіть репозиторій.
-3. У Settings сервісу вкажіть **Root Directory** `source`.
+3. У Settings сервісу залиште **Root Directory** порожнім: Railpack знаходить `package.json` у корені.
 4. У Variables задайте `BUSINESS_REVIEW_WEBHOOK_URL`, `OPENAI_API_KEY` і за потреби `OPENAI_MODEL`. `PORT` Railway задає сам.
 5. У Settings вкажіть **Healthcheck Path** `/health`.
 6. Build і Start Command не змінюйте: Railpack використовує скрипти `build` і `start` із `package.json`.

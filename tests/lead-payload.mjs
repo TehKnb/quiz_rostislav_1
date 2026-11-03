@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import ts from 'typescript';
-const docs=path.resolve('../docs'),examples=path.resolve('../examples'),engineFile=path.resolve('app/lib/engine.ts');
+const docs=path.resolve('docs'),examples=path.resolve('examples'),engineFile=path.resolve('app/lib/engine.ts');
 const localRequire=createRequire(engineFile),loaded={};
 function load(name){
  if(loaded[name])return loaded[name];
