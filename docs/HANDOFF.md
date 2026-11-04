@@ -205,7 +205,7 @@ Webhook викликається лише на сервері. Таймаут �
 3. У Settings сервісу залиште **Root Directory** порожнім: Railpack знаходить `package.json` у корені.
 4. У Variables задайте `BUSINESS_REVIEW_WEBHOOK_URL`, `OPENAI_API_KEY` і за потреби `OPENAI_MODEL`. `PORT` Railway задає сам.
 5. У Settings вкажіть **Healthcheck Path** `/health`.
-6. Build і Start Command не змінюйте: Railpack використовує скрипти `build` і `start` із `package.json`.
+6. Build і Start Command не змінюйте: Railpack використовує скрипти `build` і `start` із `package.json`. Кеш збірки Turbopack вимкнено в `next.config.ts`: відновлений на Railway `.next/cache` одного разу дав нові скрипти зі стилями попереднього коміту.
 7. У Networking натисніть Generate Domain, потім пройдіть квіз і перевірте заявку у вебхуку.
 
 Секрети читаються лише на сервері через `process.env` у момент запиту, тому після зміни змінних достатньо перезапуску. Відкат — через попередній деплой у Railway.
