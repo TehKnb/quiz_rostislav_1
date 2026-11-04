@@ -1,12 +1,12 @@
 import type { FullReport as Report } from './ai-report';
-import { autoChoices, directionFallback, directionNames, methodNote, previewDisclaimer, question, selected, type Profile } from './engine';
+import { directionFallback, directionNames, methodNote, previewDisclaimer, question, selected, subChoices, type Profile } from './engine';
 const divider='━━━━━━━━━━━━━━━━━━━━',thinDivider='────────────────────';
 const block=(title:string,parts:string[])=>[divider,title,divider,'',parts.filter(Boolean).join('\n\n')].join('\n');
 export function answerText(step:number,p:Profile){
  const q=question(step,p),text=selected(p,step).map(i=>q.options[i]).join('; ');
  if(step!==0)return text;
- const other=p.other.trim();
- if(p.answers[0]===4)return `${text} — ${autoChoices.find(([v])=>v===p.auto)?.[1]}${p.auto==='other'?`: ${other}`:''}`;
+ const other=p.other.trim(),choice=subChoices(p.answers[0])?.find(([v])=>v===p.auto)?.[1];
+ if(choice)return `${text} — ${choice}${p.auto==='other'?`: ${other}`:''}`;
  return p.answers[0]===8?`${text}: ${other}`:text;
 }
 const scoreBar=(score:number)=>'■'.repeat(Math.round(score/10))+'□'.repeat(10-Math.round(score/10));
@@ -50,8 +50,8 @@ export function buildAiText(r:Report){
   block('ПРИМІТКА',[previewDisclaimer,methodNote])
  ].join('\n\n');
 }
-export function buildLeadPayload(phone:string,p:Profile,report:Report){
- const payload:Record<string,string>={name:'Кандидат на розбір',phone:phone.replace(/^\+/,''),nameform:'заявка на бізнес-розбір',source:'Заявка на бізнес-розбір (квіз 20 питань)'};
+export function buildLeadPayload(name:string,phone:string,p:Profile,report:Report){
+ const payload:Record<string,string>={name,phone:phone.replace(/^\+/,''),nameform:'заявка на бізнес-розбір',source:'Заявка на бізнес-розбір (квіз 20 питань)'};
  p.answers.forEach((_,step)=>{payload[`Q${step+1}`]=question(step,p).title;payload[`A${step+1}`]=answerText(step,p)});
  payload['Ai Text']=buildAiText(report);
  return payload;

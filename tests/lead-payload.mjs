@@ -12,8 +12,8 @@ function load(name){
  return loaded[name]=mod.exports;
 }
 const e=load('engine'),l=load('lead-payload'),v=load('video-cases');
-function sample(sector=0,team=2){const p=e.initialProfile();p.answers=Array(20).fill(0);p.answers[0]=sector;p.answers[1]=team;p.answers[2]=5;p.answers[19]=6;p.other='Тестова сфера';p.auto='repair';return p;}
-const send=p=>l.buildLeadPayload('+380671234567',p,e.result(p));
+function sample(sector=0,team=2){const p=e.initialProfile();p.answers=Array(20).fill(0);p.answers[0]=sector;p.answers[1]=team;p.answers[2]=5;p.answers[19]=6;p.other='Тестова сфера';p.auto=sector===5?'restaurant':'repair';return p;}
+const send=p=>l.buildLeadPayload('Олена','+380671234567',p,e.result(p));
 
 // Every published branch: the payload carries exactly what question() shows, in quiz order, as text.
 const branches=JSON.parse(fs.readFileSync(path.join(docs,'questions-all-branches.json'),'utf8'));
@@ -25,11 +25,11 @@ for(const b of branches){
  assert(Object.values(payload).every(x=>typeof x==='string'&&x.length>0));
  b.questions.forEach(q=>{assert.equal(payload[`Q${q.number}`],q.title);if(q.index>0)assert(q.options.includes(payload[`A${q.number}`]),q.title);});
 }
-assert.equal(branches.length,55);
+assert.equal(branches.length,70);
 
 // Fixed fields and the digits-only phone format.
 let p=sample(),payload=send(p);
-assert.deepEqual([payload.name,payload.phone,payload.nameform,payload.source],['Кандидат на розбір','380671234567','заявка на бізнес-розбір','Заявка на бізнес-розбір (квіз 20 питань)']);
+assert.deepEqual([payload.name,payload.phone,payload.nameform,payload.source],['Олена','380671234567','заявка на бізнес-розбір','Заявка на бізнес-розбір (квіз 20 питань)']);
 
 // Multiple choice joins the texts of every option in Q3 and Q20; the solo wording of Q20 is respected.
 p=sample(2,0);p=e.toggleSelection(p,2,0);p=e.toggleSelection(p,2,1);p=e.toggleSelection(p,19,6);p=e.toggleSelection(p,19,2);p=e.toggleSelection(p,19,4);
@@ -43,6 +43,9 @@ p=sample(4);p.auto='repair';assert.equal(send(p).A1,'Автобізнес — С
 p.auto='cars';assert.equal(send(p).A1,'Автобізнес — Продаж авто');
 p.auto='other';p.other=' Логістика ';assert.equal(send(p).A1,'Автобізнес — Інше: Логістика');
 p=sample(8);p.other='Логістика';assert.equal(send(p).A1,'Інша сфера: Логістика');
+p=sample(5);p.auto='cafe';assert.equal(send(p).A1,'Ресторани / кафе / доставка — Кафе');assert.equal(send(p).Q4,e.question(3,p).title);
+p.auto='delivery';assert.equal(send(p).A1,'Ресторани / кафе / доставка — Доставка');
+p.auto='other';p.other='Кондитерська';assert.equal(send(p).A1,'Ресторани / кафе / доставка — Інше: Кондитерська');
 p=sample(1);p.other='Застаріле';p.auto='cars';assert.equal(send(p).A1,'Б’юті / косметологія');
 
 // Fixtures pin the calculations; Ai Text must contain every text the report produced.
@@ -124,7 +127,7 @@ for(const f of fixtures){
  for(const x of [para(1),para(2),para(3),...full.directions.flatMap(d=>[d.title,d.teaser,d.why,d.metric,d.discussion,...d.aiSteps.flatMap(s=>[s.title,s.action])])])assert(text.includes(x),`Ai Text is missing: ${x}`);
  for(const d of r.directions)assert(!text.includes(d.why),'prepared explanation replaced');
  assert(!/undefined|null|NaN|\[object/.test(text));
- assert.equal(l.buildLeadPayload('+380671234567',f.profile,full).phone,'380671234567');
+ assert.equal(l.buildLeadPayload('Олена','+380671234567',f.profile,full).phone,'380671234567');
 }
 // A failed section keeps its prepared text; the model never receives the phone number.
 p=sample(8,0);p.other='Логістика';p.answers.fill(2,3,19);
