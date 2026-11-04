@@ -12,7 +12,7 @@ export async function POST(req:Request){
   const name=typeof body?.name==='string'?normalizeName(body.name):null;
   if(!name)return Response.json({error:'Введіть ваше ім’я.'},{status:400});
   const phone=typeof body?.phone==='string'?normalizePhone(body.phone):null;
-  if(!phone||!validateProfile(body.profile))return Response.json({error:'Перевірте номер та відповіді на всі 20 запитань.'},{status:400});
+  if(!phone||!validateProfile(body.profile))return Response.json({error:'Перевірте номер та відповіді на всі 21 запитання.'},{status:400});
   const id=typeof body.id==='string'&&/^[0-9a-f-]{36}$/.test(body.id)?body.id:crypto.randomUUID();
   const webhookUrl=process.env.BUSINESS_REVIEW_WEBHOOK_URL;
   if(!webhookUrl){console.error('BUSINESS_REVIEW_WEBHOOK_URL is not configured');return unavailable()}

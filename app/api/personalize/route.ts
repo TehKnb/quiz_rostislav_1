@@ -1,6 +1,7 @@
 import { buildCompletionRequest, parseTitles } from '../../lib/custom-questions';
+import { sectors } from '../../lib/engine';
 import { sameOrigin } from '../../lib/same-origin';
-const OPENAI_TIMEOUT_MS=8000;
+const OPENAI_TIMEOUT_MS=15000;
 const unavailable=()=>Response.json({error:'Не вдалося персоналізувати запитання.'},{status:503});
 export async function POST(req:Request){
  try{
@@ -10,9 +11,10 @@ export async function POST(req:Request){
   let body;try{body=JSON.parse(text)}catch{return Response.json({error:'Не вдалося прочитати запит.'},{status:400})}
   const niche=typeof body?.niche==='string'?body.niche.trim():'';
   if(niche.length<2||niche.length>100||typeof body.solo!=='boolean')return Response.json({error:'Перевірте назву сфери.'},{status:400});
+  const parent=sectors.includes(body.parent)?body.parent as string:undefined;
   const apiKey=process.env.OPENAI_API_KEY;
   if(!apiKey){console.error('OPENAI_API_KEY is not configured');return unavailable()}
-  const res=await fetch(`${process.env.OPENAI_BASE_URL||'https://api.openai.com/v1'}/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${apiKey}`},body:JSON.stringify(buildCompletionRequest(process.env.OPENAI_MODEL||'gpt-4o-mini',niche,body.solo)),signal:AbortSignal.timeout(OPENAI_TIMEOUT_MS)});
+  const res=await fetch(`${process.env.OPENAI_BASE_URL||'https://api.openai.com/v1'}/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${apiKey}`},body:JSON.stringify(buildCompletionRequest(process.env.OPENAI_MODEL||'gpt-4o-mini',niche,body.solo,parent)),signal:AbortSignal.timeout(OPENAI_TIMEOUT_MS)});
   if(!res.ok){await res.body?.cancel();console.error(`OpenAI responded with HTTP ${res.status}`);return unavailable()}
   const data=await res.json() as {choices?:{message?:{content?:unknown}}[]};
   const titles=parseTitles(data.choices?.[0]?.message?.content);

@@ -5,13 +5,14 @@ export type AiConclusion={why:string;links:string;sequence:string};
 export type AiDirection={why:string;steps:AiStep[];metric:string;discussion:string};
 export type AiContent={conclusion:AiConclusion|null;directions:(AiDirection|null)[]};
 export type FullReport=Omit<Report,'directions'>&{directions:(Report['directions'][number]&{aiSteps?:AiStep[]})[]};
-const rules=`You write part of a personal report in Ukrainian for the owner of a small or medium business who has just completed a 20-question business quiz.
+const rules=`You write part of a personal report in Ukrainian for the owner of a small or medium business who has just completed a 21-question business quiz.
 
 Rules:
 - Ukrainian only, addressing the reader as "ви". Plain words an owner would use, calm and respectful. Avoid jargon and officialese such as "конверсія", "оптимізувати", "закривати угоди", "ефективність", "рекомендується", and alarm words such as "терміново" or "критично".
 - Personal but general: connect the text to their line of business (its customers, orders, services or products), goals, situation and answers, and explain what is worth attention and why. The text must not read as if it fits any business. Do not give detailed instructions, scripts, tools, budgets or deadlines: the details belong to the personal business review with КНБ.
 - Use only the data given. Do not invent facts about the business or any figures. No promised results, percentages or guarantees.
 - Answers are the owner's self-assessment, so word conclusions carefully ("за вашими відповідями", "може"), never as a proven diagnosis. A score rates how processes are organised; it is not a share of lost profit.
+- "records" says where the owner keeps orders, agreements and next actions. It is context and is not scored.
 - An answer "Не можу оцінити / не застосовується" means unknown, not weak.
 - Follow the score. At 70 or above the direction is a strength: write about keeping it stable as the business grows and never suggest gaps or problems in it. Below 40 it deserves attention first.
 - The title and description are already shown above your text. Continue them and do not repeat them. The owner's answers are shown separately, so do not quote them word for word.
@@ -27,7 +28,7 @@ const directionSchema=object({why:text,step1:step,step2:step,metric:text,discuss
 function buildRequest(model:string,name:string,schema:unknown,instructions:string,data:unknown){
  return {model,temperature:0.4,max_tokens:900,messages:[{role:'system',content:`${rules}\n\n${instructions}`},{role:'user',content:JSON.stringify(data)}],response_format:{type:'json_schema',json_schema:{name,strict:true,schema}}};
 }
-const about=(p:Profile,r:Report)=>({sector:r.sector,works_alone:solo(p),goals:r.goal,situation:r.impact});
+const about=(p:Profile,r:Report)=>({sector:r.sector,works_alone:solo(p),goals:r.goal,situation:r.impact,records:question(19,p).options[p.answers[19]!]});
 function answersOf(p:Profile,group:number){
  return Array.from({length:4},(_,i)=>{const q=3+group*4+i,shown=question(q,p);return {question:shown.title,answer:shown.options[p.answers[q]!]}});
 }

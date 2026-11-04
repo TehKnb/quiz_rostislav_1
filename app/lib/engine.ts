@@ -2,16 +2,17 @@ import source from './source.json';
 export type CustomQuestions={niche:string;solo:boolean;titles:string[]};
 export type Profile={answers:(number|null)[];auto:string;other:string;goals?:number[];impacts?:number[];custom?:CustomQuestions};
 // Steps whose wording differs per niche: the same ones a custom niche gets from the model.
-export const customSteps=[3,4,5,6,7,8,9,10,16];
-export const initialProfile=():Profile=>({answers:Array(20).fill(null),auto:'',other:''});
-export const isMultiple=(step:number)=>step===2||step===19;
-export function selected(p:Profile,step:number):number[]{const values=step===2?p.goals:step===19?p.impacts:undefined;return values??(p.answers[step]===null?[]:[p.answers[step]!]);}
+export const customSteps=[3,4,5,6,7,8,9,10,16,19];
+export const questionCount=21;
+export const initialProfile=():Profile=>({answers:Array(questionCount).fill(null),auto:'',other:''});
+export const isMultiple=(step:number)=>step===2||step===20;
+export function selected(p:Profile,step:number):number[]{const values=step===2?p.goals:step===20?p.impacts:undefined;return values??(p.answers[step]===null?[]:[p.answers[step]!]);}
 export function toggleSelection(p:Profile,step:number,value:number):Profile{
  if(!isMultiple(step))return {...p,answers:p.answers.map((a,i)=>i===step?value:a)};
  const current=selected(p,step);let values:number[];
  if(current.includes(value))values=current.filter(x=>x!==value);
- else if(step===19&&value===6)values=[6];
- else {const base=step===19?current.filter(x=>x!==6):current;if(base.length>=3)return p;values=[...base,value];}
+ else if(step===20&&value===6)values=[6];
+ else {const base=step===20?current.filter(x=>x!==6):current;if(base.length>=3)return p;values=[...base,value];}
  return {...p,[step===2?'goals':'impacts']:values,answers:p.answers.map((a,i)=>i===step?(values[0]??null):a)};
 }
 export const sectors=['Стоматологія / медицина','Б’юті / косметологія','Одяг / взуття / аксесуари','Магазин / інтернет-магазин','Автобізнес','Ресторани / кафе / доставка','Будівництво / ремонт','Виробництво','Інша сфера'];
@@ -43,7 +44,9 @@ export function question(step:number,p:Profile):{title:string;options:string[];h
  if(step===0)return {title:'У якій сфері працює ваш бізнес?',options:sectors,hint:'Оберіть свою сферу — далі запитання підлаштуються під неї.',group:-1};
  if(step===1)return {title:'Як ви зараз працюєте?',options:teams,hint:'Враховуйте працівників і постійних підрядників.',group:-1};
  if(step===2)return {title:'Що ви хочете змінити у своєму бізнесі?',options:goals,hint:'Оберіть до трьох цілей, які зараз мають найбільше значення.',group:-1};
- if(step===19)return {title:'Що в роботі бізнесу впливає особисто на вас?',options:impactOptions(p),hint:'Оберіть до трьох ситуацій. «Нічого з переліченого» обирається окремо.',group:-1};
+ // Context for the review, like goals: it stays outside the four scored groups.
+ if(step===19)return {title:hasCustomQuestions(p)?p.custom!.titles[customSteps.indexOf(19)]:source.records[niche(p)],options:source.recordOptions,hint:'Оберіть варіант, який найточніше описує, як це працює у вас зараз.',group:3};
+ if(step===20)return {title:'Що в роботі бізнесу впливає особисто на вас?',options:impactOptions(p),hint:'Оберіть до трьох ситуацій. «Нічого з переліченого» обирається окремо.',group:-1};
  let title='',options:string[]=[],hint='Оцініть останні три місяці або останній активний сезон.';
  const key=niche(p),isSolo=solo(p),group=Math.floor((step-3)/4);
  if(step<11){title=source.niches[key][step-3];options=source.shared[step-3];
@@ -61,12 +64,12 @@ export function question(step:number,p:Profile):{title:string;options:string[];h
  if(hasCustomQuestions(p)&&customSteps.includes(step))title=p.custom!.titles[customSteps.indexOf(step)];
  return {title,options:[...options,'Не можу оцінити / не застосовується'],hint,group};
 }
-export function validStep(step:number,p:Profile){const a=p.answers[step];if(isMultiple(step)){const values=selected(p,step);if(!Array.isArray(values)||values.length<1||values.length>3||new Set(values).size!==values.length||values.some(v=>!Number.isInteger(v)||v<0||v>=question(step,p).options.length)||values[0]!==a||(step===19&&values.includes(6)&&values.length>1))return false;}if(a===null||!Number.isInteger(a)||a!<0||a!>=question(step,p).options.length)return false;if(step===0){const choices=subChoices(a);if(choices&&!choices.some(([v])=>v===p.auto))return false;if(typesOwnNiche(p)&&p.other.trim().length<2)return false;}return true}
-export function validateProfile(raw:unknown):raw is Profile{if(!raw||typeof raw!=='object')return false;const p=raw as Profile;if(!Array.isArray(p.answers)||p.answers.length!==20||typeof p.auto!=='string'||typeof p.other!=='string'||p.other.length>100||(p.custom!==undefined&&!validCustomQuestions(p.custom)))return false;try{return Array.from({length:20},(_,i)=>validStep(i,p)).every(Boolean)}catch{return false}}
+export function validStep(step:number,p:Profile){const a=p.answers[step];if(isMultiple(step)){const values=selected(p,step);if(!Array.isArray(values)||values.length<1||values.length>3||new Set(values).size!==values.length||values.some(v=>!Number.isInteger(v)||v<0||v>=question(step,p).options.length)||values[0]!==a||(step===20&&values.includes(6)&&values.length>1))return false;}if(a===null||!Number.isInteger(a)||a!<0||a!>=question(step,p).options.length)return false;if(step===0){const choices=subChoices(a);if(choices&&!choices.some(([v])=>v===p.auto))return false;if(typesOwnNiche(p)&&p.other.trim().length<2)return false;}return true}
+export function validateProfile(raw:unknown):raw is Profile{if(!raw||typeof raw!=='object')return false;const p=raw as Profile;if(!Array.isArray(p.answers)||p.answers.length!==questionCount||typeof p.auto!=='string'||typeof p.other!=='string'||p.other.length>100||(p.custom!==undefined&&!validCustomQuestions(p.custom)))return false;try{return Array.from({length:questionCount},(_,i)=>validStep(i,p)).every(Boolean)}catch{return false}}
 export type Score={group:number;name:string;score:number|null;count:number;status:string;level:string};
 export function scores(p:Profile):Score[]{return names(p).map((name,group)=>{const arr=p.answers.slice(3+group*4,7+group*4).filter((a):a is number=>a!==null&&a<4&&a>=0);const score=arr.length>=2?Math.round(arr.reduce((s,a)=>s+3-a,0)/(arr.length*3)*100):null;return {group,name,score,count:arr.length,status:score===null?'Недостатньо даних':score<40?'Потребує уваги':score<70?'Є основа для покращення':'Процеси налагоджені',level:score===null?'unknown':score<40?'low':score<70?'mid':'high'};});}
 const goalGroup=[0,1,3,2,2,-1],impactGroup=[0,1,2,2,3,3,-1];
-export function priority(p:Profile,ss=scores(p)){const available=ss.filter(s=>s.score!==null);if(!available.length)return [] as number[];const min=Math.min(...available.map(s=>s.score!));const tied=available.filter(s=>s.score===min).map(s=>s.group);for(const preferences of [selected(p,2).map(i=>goalGroup[i]),selected(p,19).map(i=>impactGroup[i])]){const matches=tied.filter(g=>preferences.includes(g));if(matches.length===1)return matches;if(matches.length>1){const impactMatches=matches.filter(g=>selected(p,19).some(i=>impactGroup[i]===g));return (impactMatches.length?impactMatches:matches).slice(0,2);}}return tied.slice(0,2)}
+export function priority(p:Profile,ss=scores(p)){const available=ss.filter(s=>s.score!==null);if(!available.length)return [] as number[];const min=Math.min(...available.map(s=>s.score!));const tied=available.filter(s=>s.score===min).map(s=>s.group);for(const preferences of [selected(p,2).map(i=>goalGroup[i]),selected(p,20).map(i=>impactGroup[i])]){const matches=tied.filter(g=>preferences.includes(g));if(matches.length===1)return matches;if(matches.length>1){const impactMatches=matches.filter(g=>selected(p,20).some(i=>impactGroup[i]===g));return (impactMatches.length?impactMatches:matches).slice(0,2);}}return tied.slice(0,2)}
 export type Recommendation={q:number;title:string;teaser:string;check:string;collect:string;discussion:string;basis:string};
 const advice:[string,string,string,string][]=[
  ['Порівняйте попит із вашим планом','За останні чотири активні тижні зіставте кількість замовлень або записів із потрібним завантаженням.','План, фактичний попит, вільні потужності й сезонні обставини.','Чого бракує для плану: звернень, доступності пропозиції чи можливостей виконання?'],
@@ -165,7 +168,7 @@ export function result(p:Profile){const ss=scores(p),priorities=priority(p,ss),g
  {title:'Як пов’язані чотири напрями',text:'Маркетинг приводить потенційних клієнтів, продажі допомагають довести звернення до оплати, організація роботи — виконати обіцяне, а аналітика — оцінити економічний результат. Зміни в одному напрямі варто перевіряти разом з іншими: чи вистачить часу та людей на новий попит і чи залишатиметься більше прибутку.'},
  {title:'Послідовність перших дій',text:insufficient?'Почніть із даних, яких бракує. Далі оберіть один процес, опишіть його поточний стан і підготуйте конкретний приклад для бізнес-розбору. Не потрібно змінювати всі напрями одночасно.':`Ваші цілі: ${selected(p,2).map(i=>goals[i].toLowerCase()).join('; ')}. Для першого кроку перевірте напрям «${directionNames[g]}» на реальних прикладах. Зафіксуйте поточний показник, оберіть одну зміну й період перевірки. На розборі уточніть, чи відповідає ця послідовність вашим ресурсам і ситуації всередині бізнесу.`}
  ];
- return {scores:ss,priorities,high,insufficient,evidence,strongSide,conflict,recommendations,directions,deepDive,firstStep:insufficient?'Спершу уточніть, які процеси застосовні до вашого бізнесу.':high?'Наступний крок — перевірити готовність процесів до вашої наступної цілі.':conclusion.firstStep,title:insufficient?'Почніть із даних, які допоможуть побачити вашу ситуацію':high?'За вашими відповідями, в оцінених напрямах є налагоджені процеси':conclusion.title,explanation:insufficient?'У жодному напрямі поки недостатньо оцінених відповідей. Це не низький результат: спершу потрібно уточнити, які процеси застосовні до вашого бізнесу.':high?'Наступне питання — наскільки ці процеси стійкі за більшого навантаження. Оберіть напрям перевірки відповідно до своєї цілі й підтвердьте оцінку реальними прикладами.':conclusion.explanation,goal:selected(p,2).map(i=>goals[i]).join(' · '),impact:selected(p,19).map(i=>impactOptions(p)[i]).join(' · '),sector:sectorName(p)};
+ return {scores:ss,priorities,high,insufficient,evidence,strongSide,conflict,recommendations,directions,deepDive,firstStep:insufficient?'Спершу уточніть, які процеси застосовні до вашого бізнесу.':high?'Наступний крок — перевірити готовність процесів до вашої наступної цілі.':conclusion.firstStep,title:insufficient?'Почніть із даних, які допоможуть побачити вашу ситуацію':high?'За вашими відповідями, в оцінених напрямах є налагоджені процеси':conclusion.title,explanation:insufficient?'У жодному напрямі поки недостатньо оцінених відповідей. Це не низький результат: спершу потрібно уточнити, які процеси застосовні до вашого бізнесу.':high?'Наступне питання — наскільки ці процеси стійкі за більшого навантаження. Оберіть напрям перевірки відповідно до своєї цілі й підтвердьте оцінку реальними прикладами.':conclusion.explanation,goal:selected(p,2).map(i=>goals[i]).join(' · '),impact:selected(p,20).map(i=>impactOptions(p)[i]).join(' · '),sector:sectorName(p)};
 }
 export function normalizeName(value:string){const s=value.replace(/\s+/g,' ').trim();return s.length>=2&&s.length<=80&&/\p{L}/u.test(s)&&!/[\u0000-\u001f<>]|[\u{10000}-\u{10FFFF}]/u.test(s)?s:null}
 export function normalizePhone(value:string){let s=value.replace(/[\s().-]/g,'');if(/^0\d{9}$/.test(s))s='+38'+s;if(/^380\d{9}$/.test(s))s='+'+s;return /^\+[1-9]\d{9,14}$/.test(s)&&!/^\+(\d)\1+$/.test(s)?s:null}

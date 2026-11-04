@@ -51,7 +51,7 @@ export function buildAiText(r:Report){
  ].join('\n\n');
 }
 export function buildLeadPayload(name:string,phone:string,p:Profile,report:Report){
- const payload:Record<string,string>={name,phone:phone.replace(/^\+/,''),nameform:'заявка на бізнес-розбір',source:'Заявка на бізнес-розбір (квіз 20 питань)'};
+ const payload:Record<string,string>={name,phone:phone.replace(/^\+/,''),nameform:'заявка на бізнес-розбір',source:'Заявка на бізнес-розбір (квіз 21 питання)'};
  p.answers.forEach((_,step)=>{payload[`Q${step+1}`]=question(step,p).title;payload[`A${step+1}`]=answerText(step,p)});
  payload['Ai Text']=buildAiText(report);
  return payload;

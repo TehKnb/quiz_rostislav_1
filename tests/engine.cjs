@@ -4,8 +4,8 @@ const localRequire=require('node:module').createRequire(path.resolve('app/lib/en
 const js=ts.transpileModule(fs.readFileSync('app/lib/engine.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true,target:ts.ScriptTarget.ES2022}}).outputText;
 const mod={exports:{}};new Function('require','module','exports',js)(localRequire,mod,mod.exports);const e=mod.exports;
 let cases=0;
-function sample(sector=0,team=2){const p=e.initialProfile();p.answers=Array(20).fill(0);p.answers[0]=sector;p.answers[1]=team;p.answers[2]=5;p.answers[19]=6;p.other='Тестова сфера';p.auto=sector===5?'restaurant':'repair';return p;}
-for(let sector=0;sector<9;sector++)for(let team=0;team<5;team++){const p=sample(sector,team);assert(e.validateProfile(p));for(let step=0;step<20;step++){const q=e.question(step,p);assert(q.title?.length>5);assert(q.options.length>=4);assert(q.options.every(x=>typeof x==='string'&&x.length>1));}assert(e.scores(p).every(s=>s.score===100));assert(e.result(p).high);assert.equal(e.result(p).recommendations.length,3);cases++;}
+function sample(sector=0,team=2){const p=e.initialProfile();p.answers=Array(21).fill(0);p.answers[0]=sector;p.answers[1]=team;p.answers[2]=5;p.answers[20]=6;p.other='Тестова сфера';p.auto=sector===5?'restaurant':'repair';return p;}
+for(let sector=0;sector<9;sector++)for(let team=0;team<5;team++){const p=sample(sector,team);assert(e.validateProfile(p));for(let step=0;step<21;step++){const q=e.question(step,p);assert(q.title?.length>5);assert(q.options.length>=4);assert(q.options.every(x=>typeof x==='string'&&x.length>1));}assert(e.scores(p).every(s=>s.score===100));assert(e.result(p).high);assert.equal(e.result(p).recommendations.length,3);cases++;}
 let p=sample();for(let i=3;i<19;i++)p.answers[i]=4;assert(e.scores(p).every(s=>s.score===null));assert(e.result(p).insufficient);assert.equal(e.result(p).recommendations.length,3);cases++;
 p.answers[3]=0;p.answers[4]=3;assert.equal(e.scores(p)[0].score,50);assert.equal(e.scores(p)[0].count,2);p.answers[4]=4;assert.equal(e.scores(p)[0].score,null);cases++;
 p=sample();p.answers[2]=1;for(let i=3;i<19;i++)p.answers[i]=3;assert.deepEqual(e.priority(p),[1]);assert.equal(e.result(p).recommendations[0].q,7);assert(e.scores(p).every(s=>s.score===0));cases++;
@@ -20,17 +20,22 @@ p.auto='cafe';const cafeTitles=steps.map(i=>e.question(i,p).title);assert.equal(
 p.auto='other';assert(e.needsCustomQuestions(p));assert.equal(e.sectorName(p),'Тестова сфера');assert.equal(e.question(3,p).title,e.question(3,sample(8)).title);p.other='';assert(!e.validateProfile(p));
 for(const bad of ['','repair','cars']){p=sample(5);p.auto=bad;assert(!e.validateProfile(p),bad);}
 cases++;
+// The record-keeping question: its own wording per niche, five real answers and no effect on the scores.
+p=sample(0);assert(e.question(19,p).title.includes('пацієнтів'));assert.deepEqual(e.question(19,p).options.length,5);assert(!e.question(19,p).options.some(x=>x.includes('Не можу оцінити')));assert.equal(e.question(19,p).group,3);
+for(const [sector,auto,text] of [[1,'','процедури'],[2,'','оплати'],[3,'','покупців'],[4,'repair','автомобілів'],[4,'cars','автомобілів'],[5,'restaurant','гостями'],[5,'cafe','гостями'],[5,'delivery','гостями'],[6,'','замовниками'],[7,'','виробництва'],[8,'','домовленості з клієнтами'],[4,'other','домовленості з клієнтами'],[5,'other','домовленості з клієнтами']]){p=sample(sector);p.auto=auto;assert(e.question(19,p).title.includes(text),`${sector} ${auto}`);}
+p=sample();const recordsBaseline=e.result(p);p.answers[19]=4;assert(e.validateProfile(p));assert.deepEqual(e.result(p),recordsBaseline);p.answers[19]=5;assert(!e.validateProfile(p));p.answers[19]=null;assert(!e.validateProfile(p));
+assert(!e.isMultiple(19));assert(e.isMultiple(20));assert.equal(e.question(20,sample()).title,'Що в роботі бізнесу впливає особисто на вас?');assert.equal(e.initialProfile().answers.length,21);cases++;
 assert.equal(e.normalizeName('  Олена   Петрівна '),'Олена Петрівна');for(const bad of ['','  ','О','123','<b>Олена</b>','Олена😀','я'.repeat(81)])assert.equal(e.normalizeName(bad),null,bad);cases++;
 console.log(`${cases} scenario checks passed: branches, scores, missing data, priorities, personalized recommendations and input validation.`);
 // Multiple-choice context must not inflate process scores or depend on click order.
 p=sample(2,2);const baseline=e.scores(p);p=e.toggleSelection(p,2,0);p=e.toggleSelection(p,2,1);assert.deepEqual(e.selected(p,2),[5,0,1]);assert.equal(e.toggleSelection(p,2,2),p);assert(e.validateProfile(p));assert.deepEqual(e.scores(p),baseline);assert(e.result(p).goal.includes('Отримувати більше клієнтів'));assert(e.result(p).goal.includes('Частіше доводити'));
-p=e.toggleSelection(p,19,0);assert.deepEqual(e.selected(p,19),[0]);p=e.toggleSelection(p,19,2);assert.deepEqual(e.selected(p,19),[0,2]);p=e.toggleSelection(p,19,6);assert.deepEqual(e.selected(p,19),[6]);p=e.toggleSelection(p,19,6);assert(!e.validStep(19,p));p=e.toggleSelection(p,19,1);assert(e.validStep(19,p));
+p=e.toggleSelection(p,20,0);assert.deepEqual(e.selected(p,20),[0]);p=e.toggleSelection(p,20,2);assert.deepEqual(e.selected(p,20),[0,2]);p=e.toggleSelection(p,20,6);assert.deepEqual(e.selected(p,20),[6]);p=e.toggleSelection(p,20,6);assert(!e.validStep(20,p));p=e.toggleSelection(p,20,1);assert(e.validStep(20,p));
 for(const invalid of [[0,0],[0,1,2,3],[9],[-1],['0']])assert(!e.validateProfile({...sample(),goals:invalid}));
 assert(!e.validateProfile({...sample(),impacts:[6,1]}));assert(!e.validateProfile({...sample(),goals:[0]}));assert(!e.validateProfile({...sample(),goals:'bad'}));
-p=sample();p.answers.fill(3,3,19);p.answers[2]=0;p.goals=[0,1];p.answers[19]=6;const orderA=e.priority(p);p.goals=[1,0];p.answers[2]=1;assert.deepEqual(e.priority(p),orderA);
+p=sample();p.answers.fill(3,3,19);p.answers[2]=0;p.goals=[0,1];p.answers[20]=6;const orderA=e.priority(p);p.goals=[1,0];p.answers[2]=1;assert.deepEqual(e.priority(p),orderA);
 p=sample(2);p.answers[9]=3;p.answers[10]=3;assert(e.result(p).title.includes('губиться в діалогах'));p.answers[10]=0;assert(!e.result(p).title.includes('губиться в діалогах'));
 p=sample(0,0);p.answers[11]=3;assert(!e.result(p).title.includes('Найм'));assert(e.result(p).firstStep.length>10);
-const sparse=sample();sparse.answers=Array(20);assert(!e.validateProfile(sparse));
+const sparse=sample();sparse.answers=Array(21);assert(!e.validateProfile(sparse));
 console.log('Multiple-choice checks passed: limits, exclusivity, deselection, validation, order-independent priority and unchanged scores.');
 // Every business direction retains its own evidence and actions, including missing-data cases.
 p=sample(2,2);p.answers[6]=3;p.answers[9]=3;p.answers[14]=3;p.answers[16]=3;
