@@ -85,6 +85,10 @@ v.casesBySector.forEach((set,i)=>{
  assert(all.every(c=>!/\d+к$/.test(c.title)));
 });
 for(let s=0;s<9;s++)assert.equal(v.casesFor(sample(s)),v.casesBySector[s]);
+// «У вашій сфері» only where the sector has enough of its own videos, and never for a typed niche.
+assert.deepEqual([0,1,2,3,4,5,6,7,8].map(s=>v.hasNicheCases(sample(s))),[false,false,false,true,true,true,true,true,false]);
+assert.equal(v.hasNicheCases({...sample(4),auto:'other'}),false);
+assert.equal(v.hasNicheCases({...sample(5),auto:'other'}),false);
 assert.equal(v.youtubeEmbed('https://www.youtube.com/watch?v=Dea8DTnJLI4&t=50s'),'https://www.youtube-nocookie.com/embed/Dea8DTnJLI4?autoplay=1&rel=0&start=50');
 assert.equal(v.youtubeEmbed('https://youtu.be/l8xltJD8he8'),'https://www.youtube-nocookie.com/embed/l8xltJD8he8?autoplay=1&rel=0');
 // Custom niches: model wording replaces only the niche-specific steps, and only for the niche it was made for.
