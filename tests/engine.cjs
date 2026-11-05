@@ -39,7 +39,7 @@ const sparse=sample();sparse.answers=Array(21);assert(!e.validateProfile(sparse)
 console.log('Multiple-choice checks passed: limits, exclusivity, deselection, validation, order-independent priority and unchanged scores.');
 // Every business direction retains its own evidence and actions, including missing-data cases.
 p=sample(2,2);p.answers[6]=3;p.answers[9]=3;p.answers[14]=3;p.answers[16]=3;
-let detailed=e.result(p);assert.deepEqual(detailed.directions.map(d=>d.steps[0].q),[6,9,14,16]);assert.deepEqual(detailed.directions.map(d=>d.name),['Маркетинг','Продажі','Організація роботи','Аналітика']);
+let detailed=e.result(p);assert.deepEqual(detailed.directions.map(d=>d.steps[0].q),[6,9,14,16]);assert.deepEqual(detailed.directions.map(d=>d.name),['Маркетинг','Продажі','Команда','Аналітика']);
 p=sample(1,0);p.answers[11]=3;detailed=e.result(p);assert.equal(detailed.directions[2].steps[0].title,'Знайдіть, куди йде ваш час');assert(!detailed.directions[2].steps.some(s=>s.title.includes('відбору')));
 p=sample();p.answers.fill(4,3,19);detailed=e.result(p);assert(detailed.directions.every(d=>!d.enough&&d.steps.length===0&&d.score===null));assert(detailed.deepDive[0].text.includes('недостатньо'));
 p=sample();p.answers.fill(0,3,19);assert(e.result(p).deepDive[0].text.includes('налагоджені процеси'));

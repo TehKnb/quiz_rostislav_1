@@ -1,4 +1,4 @@
-import { question, result, solo, type Profile } from './engine';
+import { names, question, result, solo, type Profile } from './engine';
 type Report=ReturnType<typeof result>;
 export type AiStep={title:string;action:string};
 export type AiConclusion={why:string;links:string;sequence:string};
@@ -55,7 +55,7 @@ Example of the tone for a different business, a car repair shop (do not reuse it
 why: "Клієнт автосервісу часто обирає того, хто швидше пояснив ціну й терміни. За вашими відповідями, частина таких розмов завершується без домовленості, тож тут може губитися частина замовлень."
 step1: {"title":"Зрозумійте, де зникає інтерес","action":"Подивіться, на чому найчастіше зупиняється розмова з власником авто: на ціні, термінах чи тому, що не домовилися про візит."}
 metric: "Порівнюйте за однакові періоди, яка частка звернень доходить до візиту в сервіс."
-discussion: "Що саме заважає власникам авто погодитися на візит після першої розмови?"`,{...about(p,r),direction:d.name,score:d.score,status:d.status,title:d.title,description:d.teaser,answers:answersOf(p,group)});
+discussion: "Що саме заважає власникам авто погодитися на візит після першої розмови?"`,{...about(p,r),direction:names(p)[group],score:d.score,status:d.status,title:d.title,description:d.teaser,answers:answersOf(p,group)});
 }
 const teamWords=/команд|співробітник|працівник|менеджер|персонал(?!ьн|із)|(?<!\p{L})найм(?!ен)|делегу/iu;
 // Model output reaches the visitor and the CRM, so anything unexpected falls back to the prepared texts.
