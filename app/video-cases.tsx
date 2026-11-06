@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Image from 'next/image';
-import { ExternalLink, Play } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { youtubeEmbed, youtubeThumb, type CaseSet } from './lib/video-cases';
 export function VideoCases({cases,niche}:{cases:CaseSet;niche:boolean}){
  const [playing,setPlaying]=useState<string|null>(null);
@@ -12,7 +12,6 @@ export function VideoCases({cases,niche}:{cases:CaseSet;niche:boolean}){
    const wide=i<lead||(unpaired&&i===items.length-1);
    return <article key={c.url} className={wide?'rp-case wide':'rp-case'}>
     <div className="rp-case-player">{playing===c.url?<iframe src={youtubeEmbed(c.url)} title={c.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen/>:<button type="button" aria-label={`Дивитися відео: ${c.title}`} onClick={()=>setPlaying(c.url)}><Image src={youtubeThumb(c.url)} alt="" width={1280} height={720} unoptimized/><span><Play size={wide?30:22}/></span></button>}</div>
-    <h3>{c.title}</h3><a href={c.url} target="_blank" rel="noopener noreferrer">Дивитися на YouTube<ExternalLink size={13}/></a>
    </article>})}</div>
  </section>
 }
