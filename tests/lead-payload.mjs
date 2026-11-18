@@ -74,26 +74,25 @@ p=sample();p.answers.fill(4,3,19);let text=assertComplete(p);assert(text.include
 const blocks=['ГОЛОВНИЙ ВИСНОВОК','ОЦІНКИ ЗА НАПРЯМАМИ','АНАЛІЗ РЕЗУЛЬТАТІВ','ПРІОРИТЕТНІ РЕКОМЕНДАЦІЇ','РЕКОМЕНДАЦІЇ ЗА НАПРЯМАМИ','ПРИМІТКА'];
 text=l.buildAiText(e.result(fixtures[0].profile));blocks.reduce((at,b)=>{const i=text.indexOf(`━\n${b}\n━`);assert(i>at,b);return i},-1);
 
-// Video cases: one set per quiz sector, valid links, no video twice in a sector.
+// Video cases: one set per quiz sector, valid Bunny ids, no video twice in a sector.
 assert.equal(v.casesBySector.length,e.sectors.length);
-const expected=[[0,8],[1,5],[0,6],[0,6],[0,6],[3,2],[3,3],[0,6],[0,8]];
+const expected=[[0,11],[1,5],[0,6],[0,6],[0,6],[3,3],[3,3],[0,6],[0,11]];
 v.casesBySector.forEach((set,i)=>{
  assert.deepEqual([set.main.length,set.extra.length],expected[i],e.sectors[i]);
- const all=[...set.main,...set.extra],ids=all.map(c=>v.youtubeId(c.url));
+ const all=[...set.main,...set.extra],ids=all.map(c=>c.video);
  assert.equal(new Set(ids).size,ids.length,`duplicate video in ${e.sectors[i]}`);
- assert(ids.every(id=>/^[\w-]{11}$/.test(id)));
- assert(all.every(c=>!/\d+к$/.test(c.title)));
- assert(all.every(c=>c.label.length>=3&&c.label.length<=32),`case label in ${e.sectors[i]}`);
- // Removed at the client's request: Корчун, Федечко, Левченко.
- assert(!ids.some(id=>['l8xltJD8he8','73oDpTiS4nI','vhEqm4inNwY'].includes(id)));
+ assert(ids.every(id=>/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(id)));
+ assert(all.every(c=>/^thumbnail(_[0-9a-f]{8})?\.jpg$/.test(c.thumb)));
+ // Removed at the client's request.
+ assert(!all.some(c=>/Корчун|Федечко|Левченко/.test(c.title)));
 });
 for(let s=0;s<9;s++)assert.equal(v.casesFor(sample(s)),v.casesBySector[s]);
 // «У вашій сфері» only where the sector has enough of its own videos, and never for a typed niche.
 assert.deepEqual([0,1,2,3,4,5,6,7,8].map(s=>v.hasNicheCases(sample(s))),[false,false,false,true,true,true,true,true,false]);
 assert.equal(v.hasNicheCases({...sample(4),auto:'other'}),false);
 assert.equal(v.hasNicheCases({...sample(5),auto:'other'}),false);
-assert.equal(v.youtubeEmbed('https://www.youtube.com/watch?v=Dea8DTnJLI4&t=50s'),'https://www.youtube-nocookie.com/embed/Dea8DTnJLI4?autoplay=1&rel=0&start=50');
-assert.equal(v.youtubeEmbed('https://youtu.be/rHjy23KCImc'),'https://www.youtube-nocookie.com/embed/rHjy23KCImc?autoplay=1&rel=0');
+assert.equal(v.bunnyEmbed(v.casesBySector[1].main[0]),'https://iframe.mediadelivery.net/embed/684628/e1f64876-fc51-4712-a64f-ea7f32b0b3af?autoplay=true&responsive=true');
+assert.equal(v.bunnyThumb(v.casesBySector[1].main[0]),'https://vz-fc71976a-1a7.b-cdn.net/e1f64876-fc51-4712-a64f-ea7f32b0b3af/thumbnail_72efbff8.jpg');
 // Custom niches: model wording replaces only the niche-specific steps, and only for the niche it was made for.
 const c=load('custom-questions');
 const titles=e.customSteps.map((s,i)=>`Як ви працюєте із запитом №${i+1} у логістиці?`);

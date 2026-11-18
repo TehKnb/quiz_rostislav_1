@@ -27,7 +27,7 @@
 | `app/api/personalize/route.ts`, `app/lib/custom-questions.ts` | Формулювання запитань під власну сферу через OpenAI |
 | `app/lib/ai-report.ts`, `app/lib/ai-generate.ts` | Генерація пояснень у результаті через OpenAI: промпти, перевірка відповідей, запасний сценарій |
 | `app/lib/lead-payload.ts` | Формування payload: Q1–Q21, A1–A21, `Ai Text` |
-| `app/lib/video-cases.ts`, `app/video-cases.tsx` | Відеокейси за сферами: слайдер, відео відкривається у вікні поверх сторінки |
+| `app/lib/video-cases.ts`, `app/video-cases.tsx` | Відеокейси за сферами (відео й прев’ю на Bunny Stream, бібліотека 684628): слайдер, відео відкривається у вікні поверх сторінки. Домен сайту має бути в Allowed Domains бібліотеки Bunny, інакше прев’ю й плеєр віддають 403 |
 | `tests/engine.cjs`, `tests/lead-payload.mjs` | Контроль логіки, персоналізації, payload і кейсів |
 | `public/knb-logo.svg`, `favicon.svg` | Логотип та іконка сайта |
 | `package.json`, `pnpm-lock.yaml` | Залежності та їх зафіксовані версії |
