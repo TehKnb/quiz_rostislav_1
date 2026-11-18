@@ -1,17 +1,19 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Play } from 'lucide-react';
-import { youtubeEmbed, youtubeThumb, type CaseSet } from './lib/video-cases';
+import { Play, X } from 'lucide-react';
+import { Slider } from './slider';
+import { youtubeEmbed, youtubeThumb, type CaseSet, type VideoCase } from './lib/video-cases';
 export function VideoCases({cases,niche}:{cases:CaseSet;niche:boolean}){
- const [playing,setPlaying]=useState<string|null>(null);
- const items=[...cases.main,...cases.extra],lead=cases.main.length===1?1:0,unpaired=(items.length-lead)%2===1;
- return <section className="rp-cases" aria-labelledby="cases-title"><h2 id="cases-title">{niche?<>РЕЗУЛЬТАТИ ВЛАСНИКІВ БІЗНЕСУ У ВАШІЙ СФЕРІ<br/>ПІСЛЯ НАШОГО 7-ТИЖНЕВОГО БІЗНЕС-НАВЧАННЯ</>:<>РЕЗУЛЬТАТИ ПІДПРИЄМЦІВ, ЯКІ ПРОЙШЛИ<br/>НАШЕ 7-ТИЖНЕВЕ БІЗНЕС-НАВЧАННЯ</>}</h2><p className="rp-cases-intro">Подивіться, які рішення змінили їхній бізнес: що вони впровадили, як зріс прибуток і що тепер працює без щоденного контролю власника.</p>
-  <div className="rp-case-grid">{items.map((c,i)=>{
-   // The only video from the sector leads across both columns; so does a last video left without a pair.
-   const wide=i<lead||(unpaired&&i===items.length-1);
-   return <article key={c.url} className={wide?'rp-case wide':'rp-case'}>
-    <div className="rp-case-player">{playing===c.url?<iframe src={youtubeEmbed(c.url)} title={c.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen/>:<button type="button" aria-label={`Дивитися відео: ${c.title}`} onClick={()=>setPlaying(c.url)}><Image src={youtubeThumb(c.url)} alt="" width={1280} height={720} unoptimized/><span><Play size={wide?30:22}/></span></button>}</div>
-   </article>})}</div>
+ const [playing,setPlaying]=useState<VideoCase|null>(null);
+ useEffect(()=>{if(!playing)return;const close=(e:KeyboardEvent)=>{if(e.key==='Escape')setPlaying(null)};window.addEventListener('keydown',close);return ()=>window.removeEventListener('keydown',close)},[playing]);
+ return <section className="rp-cases" aria-labelledby="cases-title">
+  <div className="rp-showcase-head"><h2 id="cases-title">{niche?<><span>Результати власників бізнесу</span> <mark>у вашій сфері</mark> <small>після нашого 7-тижневого бізнес-навчання</small></>:<><span>Результати підприємців,</span> <small>які пройшли наше</small> <mark>7-тижневе бізнес-навчання</mark></>}</h2><p>Подивіться, які рішення вони впровадили та яких результатів досягли.</p></div>
+  <Slider className="rp-case-slider" label="Відеокейси" hint="Гортайте кейси" slides={[...cases.main,...cases.extra].map(c=>({key:c.url,node:<button type="button" className="rp-case-card" aria-label={`Дивитися відео: ${c.title}`} onClick={()=>setPlaying(c)}>
+   <span className="rp-case-copy"><span className="rp-case-label"><i>/</i>{c.label}</span><strong>Зростання чистого прибутку</strong></span>
+   <span className="rp-case-photo"><Image src={youtubeThumb(c.url)} alt="" width={1280} height={720} unoptimized/></span>
+   <span className="rp-case-play"><Play size={20}/></span>
+  </button>}))}/>
+  {playing&&<div className="modal-backdrop" onClick={()=>setPlaying(null)}><div className="rp-video-modal" role="dialog" aria-modal="true" aria-label={playing.title} onClick={e=>e.stopPropagation()}><button type="button" className="rp-video-close" aria-label="Закрити" onClick={()=>setPlaying(null)}><X size={22}/></button><iframe src={youtubeEmbed(playing.url)} title={playing.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen/></div></div>}
  </section>
 }

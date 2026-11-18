@@ -83,6 +83,7 @@ v.casesBySector.forEach((set,i)=>{
  assert.equal(new Set(ids).size,ids.length,`duplicate video in ${e.sectors[i]}`);
  assert(ids.every(id=>/^[\w-]{11}$/.test(id)));
  assert(all.every(c=>!/\d+к$/.test(c.title)));
+ assert(all.every(c=>c.label.length>=3&&c.label.length<=32),`case label in ${e.sectors[i]}`);
  // Removed at the client's request: Корчун, Федечко, Левченко.
  assert(!ids.some(id=>['l8xltJD8he8','73oDpTiS4nI','vhEqm4inNwY'].includes(id)));
 });
