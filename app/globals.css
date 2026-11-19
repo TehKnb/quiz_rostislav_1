@@ -187,7 +187,8 @@ body:has(.result-shell){background:#060e12}
 .rp-review:hover{border-color:#8a8d94}
 .rp-review:focus-visible{outline:2px solid var(--red);outline-offset:3px}
 .rp-review-mark{display:block;height:30px;font-family:Georgia,serif;font-size:60px;line-height:.85;font-weight:700;color:var(--red)}
-.rp-review-text{display:block;flex:1;margin:8px 0 18px;white-space:pre-line;font-size:15px;line-height:1.5;color:#f2f2f3}
+.rp-review-text{display:block;flex:none;height:225px;margin:8px 0 18px;padding-right:8px;overflow-y:auto;overscroll-behavior:contain;white-space:pre-line;font-size:15px;line-height:1.5;color:#f2f2f3;scrollbar-width:thin;scrollbar-color:var(--red) transparent}
+.rp-review-text::-webkit-scrollbar{width:4px}.rp-review-text::-webkit-scrollbar-thumb{background:var(--red);border-radius:2px}
 .rp-review-author{display:flex;align-items:center;gap:11px}
 .rp-review-author img{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0}
 .rp-review-author b{font-size:14px;font-weight:600}
