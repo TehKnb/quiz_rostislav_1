@@ -169,9 +169,12 @@ body:has(.result-shell){background:#060e12}
 .rp-slider-hint{display:flex;align-items:center;gap:18px;max-width:780px;margin:12px auto 0;color:#c9c9cc;font-size:15px}
 .rp-slider-hint::before,.rp-slider-hint::after{content:'';flex:1;height:1px;background:#4a4c52}
 .rp-case-slider .rp-slide{flex-basis:40%}
-.rp-case-card{display:block;width:100%;aspect-ratio:16/9;padding:0;border:0;border-radius:14px;overflow:hidden;background:#0b0b0d}
+.rp-case-card{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border:2px solid #e4e4e7;border-radius:14px;overflow:hidden;background:#0b0b0d}
 .rp-case-card img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .25s}
 .rp-case-card:hover img{transform:scale(1.03)}
+.rp-case-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;box-shadow:0 6px 20px #0007;transition:transform .2s}
+.rp-case-play svg{fill:currentColor;margin-left:3px}
+.rp-case-card:hover .rp-case-play{transform:translate(-50%,-50%) scale(1.08)}
 .rp-case-card:focus-visible{outline:2px solid var(--red);outline-offset:3px}
 .rp-video-modal{position:relative;width:min(960px,100%);aspect-ratio:16/9;background:#000;border-radius:10px}
 .rp-video-modal iframe{display:block;width:100%;height:100%;border:0;border-radius:10px}
@@ -179,22 +182,31 @@ body:has(.result-shell){background:#060e12}
 .rp-reviews{margin:44px 0 10px;padding:34px 0 40px;border-top:1px solid #38393e;border-bottom:1px solid #38393e}
 .rp-reviews>h2{text-align:center;font-size:28px;line-height:1.2;font-weight:800;text-transform:uppercase;letter-spacing:.3px;margin-bottom:26px}
 .rp-review-slider .rp-slide{flex-basis:33.333%}
-.rp-review{display:flex;flex-direction:column;height:100%;padding:20px 20px 18px;border:1px solid #55585e;border-radius:12px;background:linear-gradient(160deg,#1b1d22,#111215)}
-.rp-review-mark{height:30px;font-family:Georgia,serif;font-size:60px;line-height:.85;font-weight:700;color:var(--red)}
-.rp-review>p{flex:1;margin:8px 0 18px;font-size:15px;line-height:1.5;color:#f2f2f3}
+.rp-review-slider [data-slot=carousel-item]{display:flex}
+.rp-review{display:flex;flex-direction:column;width:100%;padding:20px 20px 18px;border:1px solid #55585e;border-radius:12px;background:linear-gradient(160deg,#1b1d22,#111215);color:inherit;text-align:left;transition:border-color .2s}
+.rp-review:hover{border-color:#8a8d94}
+.rp-review:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+.rp-review-mark{display:block;height:30px;font-family:Georgia,serif;font-size:60px;line-height:.85;font-weight:700;color:var(--red)}
+.rp-review-text{display:block;flex:1;margin:8px 0 18px;white-space:pre-line;font-size:15px;line-height:1.5;color:#f2f2f3}
 .rp-review-author{display:flex;align-items:center;gap:11px}
 .rp-review-author img{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0}
 .rp-review-author b{font-size:14px;font-weight:600}
-.rp-form-head{text-align:center;margin:30px 0 26px}
-.rp-form-head h3{display:flex;justify-content:center;gap:16px;font-size:clamp(26px,3.4vw,40px);line-height:1.1;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
-.rp-form-head h3 span{color:var(--red);font-style:italic}
-.rp-form-head p{max-width:720px;margin:14px auto 0;font-size:18px;line-height:1.5;color:#c9c9cc}
-.rp-form-head strong{color:#fff;font-weight:700}
-.rp-form .rp-form-row{grid-template-columns:1fr 1fr;gap:18px 34px}
-.rp-form .rp-form-row>label{gap:10px;font-size:15px;font-weight:700;color:#fff}
-.rp-form .rp-form-row input{height:56px;padding:0 20px;border:1px solid #6a6b70;border-radius:8px;background:#121214;font-size:16px}
-.rp-form .rp-form-row input::placeholder{color:#9a9ba0}
-.rp-form .rp-form-row>.primary{grid-column:1/-1;min-height:58px;border-radius:8px;justify-content:center;gap:10px;font-size:19px;font-weight:700}
+.rp-lead{margin:44px 0 10px}
+.rp-lead-head{text-align:center;margin-bottom:26px}
+.rp-lead-head h2{display:flex;justify-content:center;gap:16px;font-size:clamp(26px,3.4vw,40px);line-height:1.1;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+.rp-lead-head h2 span{color:var(--red);font-style:italic}
+.rp-lead-head p{max-width:720px;margin:14px auto 0;font-size:18px;line-height:1.5;color:#c9c9cc}
+.rp-lead-head strong{color:#fff;font-weight:700}
+.rp-lead .rp-form-row{grid-template-columns:1fr 1fr;gap:18px 34px}
+.rp-lead .rp-form-row>label{gap:10px;font-size:15px;font-weight:700;color:#fff}
+.rp-lead .rp-form-row input{height:56px;padding:0 20px;border:1px solid #6a6b70;border-radius:8px;background:#121214;font-size:16px}
+.rp-lead .rp-form-row input::placeholder{color:#9a9ba0}
+.rp-lead .rp-form-row>.primary{grid-column:1/-1;min-height:58px;border-radius:8px;justify-content:center;gap:10px;font-size:19px;font-weight:700}
 @media(max-width:900px){.rp-case-slider .rp-slide{flex-basis:62%}.rp-review-slider .rp-slide{flex-basis:50%}}
-@media(max-width:660px){.rp-showcase-head h2 span,.rp-showcase-head mark{font-size:22px}.rp-showcase-head small{font-size:16px}.rp-showcase-head p{font-size:14px}.rp-case-slider .rp-slide{flex-basis:88%}.rp-review-slider .rp-slide{flex-basis:88%}.rp-reviews>h2{font-size:21px}.rp-slider-arrow.prev{left:-8px}.rp-slider-arrow.next{right:-8px}.rp-form .rp-form-row{grid-template-columns:1fr}.rp-form-head h3{gap:10px}.rp-form-head p{font-size:15px}.rp-form .rp-form-row>.primary{font-size:16px}}
-@media print{.rp-reviews{display:none!important}}
+@media(max-width:660px){.rp-showcase-head h2 span,.rp-showcase-head mark{font-size:22px}.rp-showcase-head small{font-size:16px}.rp-showcase-head p{font-size:14px}.rp-case-slider .rp-slide{flex-basis:88%}.rp-review-slider .rp-slide{flex-basis:88%}.rp-reviews>h2{font-size:21px}.rp-slider-arrow.prev{left:-8px}.rp-slider-arrow.next{right:-8px}.rp-lead .rp-form-row{grid-template-columns:1fr}.rp-lead-head h2{gap:10px}.rp-lead-head p{font-size:15px}.rp-lead .rp-form-row>.primary{font-size:16px}}
+@media print{.rp-reviews,.rp-lead{display:none!important}}
+.rp-review-modal{max-width:780px;max-height:88vh;overflow:auto;padding:36px 40px}
+.rp-review-modal .rp-review-author img{width:48px;height:48px}
+.rp-review-modal .rp-review-author b{font-size:17px}
+.rp-review-modal p{margin:20px 0 0;white-space:pre-line;font-size:18px;line-height:1.7;color:#eeeef0}
+@media(max-width:660px){.rp-review-modal{padding:28px 20px}.rp-review-modal p{font-size:16px}}
