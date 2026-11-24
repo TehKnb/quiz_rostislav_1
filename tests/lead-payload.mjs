@@ -11,7 +11,7 @@ function load(name){
  const mod={exports:{}};new Function('require','module','exports',js)(id=>id.startsWith('./')&&!id.endsWith('.json')?load(id.slice(2)):localRequire(id),mod,mod.exports);
  return loaded[name]=mod.exports;
 }
-const e=load('engine'),l=load('lead-payload'),v=load('video-cases');
+const e=load('engine'),l=load('lead-payload'),v=load('video-cases'),u=load('utm');
 function sample(sector=0,team=2){const p=e.initialProfile();p.answers=Array(21).fill(0);p.answers[0]=sector;p.answers[1]=team;p.answers[2]=5;p.answers[20]=6;p.other='Тестова сфера';p.auto=sector===5?'restaurant':'repair';return p;}
 const send=p=>l.buildLeadPayload('Олена','+380671234567',p,e.result(p));
 
@@ -21,8 +21,8 @@ for(const b of branches){
  const p=sample(b.sectorIndex,b.teamIndex);p.auto=b.auto||'';if(b.sectorIndex===4&&!b.auto)p.auto='other';
  for(const q of b.questions)assert.deepEqual(e.question(q.index,p).title,q.title);
  const payload=send(p);
- assert.deepEqual(Object.keys(payload),['name','phone','nameform','source',...Array.from({length:21},(_,i)=>[`Q${i+1}`,`A${i+1}`]).flat(),'Ai Text']);
- assert(Object.values(payload).every(x=>typeof x==='string'&&x.length>0));
+ assert.deepEqual(Object.keys(payload),['name','phone','nameform','source',...u.utmKeys,...Array.from({length:21},(_,i)=>[`Q${i+1}`,`A${i+1}`]).flat(),'Ai Text']);
+ assert(Object.entries(payload).every(([k,x])=>typeof x==='string'&&(x.length>0||u.utmKeys.includes(k))));
  b.questions.forEach(q=>{assert.equal(payload[`Q${q.number}`],q.title);if(q.index>0)assert(q.options.includes(payload[`A${q.number}`]),q.title);});
 }
 assert.equal(branches.length,70);
@@ -30,6 +30,22 @@ assert.equal(branches.length,70);
 // Fixed fields and the digits-only phone format.
 let p=sample(),payload=send(p);
 assert.deepEqual([payload.name,payload.phone,payload.nameform,payload.source],['Олена','380671234567','Заявка на консультацію: Квіз | Ніші — 21 запитання','Заявка на консультацію: Квіз | Ніші — 21 запитання']);
+
+// UTM tags: none or one is organic, two or more is an ad campaign; every tag is passed through, junk is dropped.
+const organic='Заявка на консультацію: Квіз | Ніші — 21 запитання',paid='ТРАФ|Квіз | Ніші — 21 запитання';
+const withUtm=tags=>l.buildLeadPayload('Олена','+380671234567',sample(),e.result(sample()),u.readUtm(tags));
+assert.equal(send(sample()).source,organic);
+assert.deepEqual(u.utmKeys.map(k=>send(sample())[k]),['','','','','']);
+assert.equal(withUtm({}).source,organic);
+assert.equal(withUtm({utm_source:'facebook'}).source,organic);
+assert.equal(withUtm({utm_source:'facebook',utm_medium:' '}).source,organic);
+let paidPayload=withUtm({utm_source:'facebook',utm_medium:'cpc'});
+assert.equal(paidPayload.source,paid);assert.equal(paidPayload.nameform,organic);
+paidPayload=withUtm({utm_source:' facebook ',utm_medium:'cpc',utm_campaign:'quiz',utm_content:'video1',utm_term:'бізнес',fbclid:'x',name:'Хтось'});
+assert.deepEqual(u.utmKeys.map(k=>paidPayload[k]),['facebook','cpc','quiz','video1','бізнес']);
+assert.equal(paidPayload.name,'Олена');assert(!('fbclid' in paidPayload));
+assert.deepEqual(u.readUtm({utm_source:{x:1},utm_medium:['a'],utm_term:'x'.repeat(500)}),{utm_source:'',utm_medium:'',utm_campaign:'',utm_content:'',utm_term:'x'.repeat(200)});
+assert.deepEqual(u.readUtm('junk'),u.readUtm(null));
 
 // Multiple choice joins the texts of every option in Q3 and Q21; the solo wording of Q21 is respected.
 p=sample(2,0);p=e.toggleSelection(p,2,0);p=e.toggleSelection(p,2,1);p=e.toggleSelection(p,20,6);p=e.toggleSelection(p,20,2);p=e.toggleSelection(p,20,4);

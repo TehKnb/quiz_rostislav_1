@@ -2,6 +2,7 @@ import { withAi } from '../../lib/ai-generate';
 import { normalizeName, normalizePhone, validateProfile } from '../../lib/engine';
 import { buildLeadPayload } from '../../lib/lead-payload';
 import { sameOrigin } from '../../lib/same-origin';
+import { readUtm } from '../../lib/utm';
 const WEBHOOK_TIMEOUT_MS=15000;
 const unavailable=()=>Response.json({error:'Не вдалося надіслати заявку. Спробуйте ще раз — ваші відповіді залишилися на сторінці.'},{status:503});
 export async function POST(req:Request){
@@ -19,7 +20,7 @@ export async function POST(req:Request){
   // Generated before the webhook because Ai Text must carry what the visitor sees.
   const report=await withAi(body.profile);
   // Redirects are not followed: a POST redirected to GET would look successful while the lead is lost.
-  const res=await fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json; charset=utf-8','Idempotency-Key':id},body:JSON.stringify(buildLeadPayload(name,phone,body.profile,report)),redirect:'manual',signal:AbortSignal.timeout(WEBHOOK_TIMEOUT_MS)});
+  const res=await fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json; charset=utf-8','Idempotency-Key':id},body:JSON.stringify(buildLeadPayload(name,phone,body.profile,report,readUtm(body.utm))),redirect:'manual',signal:AbortSignal.timeout(WEBHOOK_TIMEOUT_MS)});
   await res.body?.cancel();
   if(!res.ok){console.error(`Lead webhook responded with HTTP ${res.status}`);return unavailable()}
   return Response.json({id,report},{headers:{'Cache-Control':'no-store'}});
