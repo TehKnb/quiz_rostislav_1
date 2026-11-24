@@ -1,4 +1,4 @@
-// UTM tags from the landing URL. One tag or none means organic traffic; two or more mean an ad campaign.
+// UTM tags from the landing URL; utm_source also names the channel in the CRM source.
 export const utmKeys=['utm_source','utm_medium','utm_campaign','utm_content','utm_term'] as const;
 export type Utm=Record<(typeof utmKeys)[number],string>;
 const storageKey='knb-utm';
@@ -8,7 +8,12 @@ export function readUtm(v:unknown):Utm{
  const src=(v&&typeof v==='object'?v:{}) as Record<string,unknown>;
  return Object.fromEntries(utmKeys.map(k=>[k,clean(src[k])])) as Utm;
 }
-export const isPaidTraffic=(u:Utm)=>utmKeys.filter(k=>u[k]).length>1;
+// Usual channels keep their own spelling; anything else gets a capital first letter (telegram → Telegram).
+const channelNames:Record<string,string>={facebook:'Facebook',fb:'Facebook',instagram:'Instagram',ig:'Instagram',telegram:'Telegram',tg:'Telegram',tiktok:'TikTok',youtube:'YouTube',yt:'YouTube',google:'Google',viber:'Viber',linkedin:'LinkedIn',email:'Email'};
+export function channelName(u:Utm){
+ const raw=u.utm_source.replace(/\s+/g,' ').trim();
+ return raw?channelNames[raw.toLowerCase()]??raw[0].toUpperCase()+raw.slice(1):'';
+}
 // Browser only. Tags are kept for the visit, so a reload or a later submit still knows where the visitor came from.
 export function captureUtm(){
  try{

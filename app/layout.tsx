@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import { pixelId, pixelScript } from './lib/pixel';
 import './globals.css';
 export const metadata: Metadata = {title:'КНБ — персональна карта бізнесу',description:'21 запитання про ваш бізнес. Маркетинг, продажі, команда й аналітика — побачте, з чого почати зміни.',icons:{icon:'/favicon.svg'}};
 const clarity='(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","zilvjpgfh8");';
-export default function Layout({children}:{children:React.ReactNode}){return <html lang="uk"><head>{/* Microsoft Clarity. The id must not be "clarity": window.clarity would point at this element. Contact fields carry data-clarity-mask, so recordings never show them. */}<script id="ms-clarity-init" dangerouslySetInnerHTML={{__html:clarity}}/></head><body>{children}{/* AI sales assistant widget from the club's site; loads after the page is interactive, like defer. */}<Script src="https://kons-na-bis.com/wp-content/plugins/ai-sales-assistant/public/embed.js" strategy="afterInteractive"/></body></html>}
+// PIXEL_ID comes from the Railway variables and is read when the page is built.
+const pixel=pixelId(process.env.PIXEL_ID??process.env.NEXT_PUBLIC_PIXEL_ID);
+export default function Layout({children}:{children:React.ReactNode}){return <html lang="uk"><head>{pixel&&<script id="meta-pixel" dangerouslySetInnerHTML={{__html:pixelScript(pixel)}}/>}{/* Microsoft Clarity. The id must not be "clarity": window.clarity would point at this element. Contact fields carry data-clarity-mask, so recordings never show them. */}<script id="ms-clarity-init" dangerouslySetInnerHTML={{__html:clarity}}/></head><body>{children}{/* AI sales assistant widget from the club's site; loads after the page is interactive, like defer. */}<Script src="https://kons-na-bis.com/wp-content/plugins/ai-sales-assistant/public/embed.js" strategy="afterInteractive"/></body></html>}

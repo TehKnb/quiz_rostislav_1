@@ -31,19 +31,24 @@ assert.equal(branches.length,70);
 let p=sample(),payload=send(p);
 assert.deepEqual([payload.name,payload.phone,payload.nameform,payload.source],['Олена','380671234567','Заявка на консультацію: Квіз | Ніші — 21 запитання','Заявка на консультацію: Квіз | Ніші — 21 запитання']);
 
-// UTM tags: none or one is organic, two or more is an ad campaign; every tag is passed through, junk is dropped.
-const organic='Заявка на консультацію: Квіз | Ніші — 21 запитання',paid='ТРАФ|Квіз | Ніші — 21 запитання';
+// UTM tags: utm_source names the channel in source; without it source is the form name. Every tag is passed through, junk is dropped.
+const organic='Заявка на консультацію: Квіз | Ніші — 21 запитання',via=c=>`Заявка на консультацію: ${c} | Квіз | Ніші — 21 запитання`;
 const withUtm=tags=>l.buildLeadPayload('Олена','+380671234567',sample(),e.result(sample()),u.readUtm(tags));
 assert.equal(send(sample()).source,organic);
 assert.deepEqual(u.utmKeys.map(k=>send(sample())[k]),['','','','','']);
 assert.equal(withUtm({}).source,organic);
-assert.equal(withUtm({utm_source:'facebook'}).source,organic);
-assert.equal(withUtm({utm_source:'facebook',utm_medium:' '}).source,organic);
-let paidPayload=withUtm({utm_source:'facebook',utm_medium:'cpc'});
-assert.equal(paidPayload.source,paid);assert.equal(paidPayload.nameform,organic);
-paidPayload=withUtm({utm_source:' facebook ',utm_medium:'cpc',utm_campaign:'quiz',utm_content:'video1',utm_term:'бізнес',fbclid:'x',name:'Хтось'});
-assert.deepEqual(u.utmKeys.map(k=>paidPayload[k]),['facebook','cpc','quiz','video1','бізнес']);
-assert.equal(paidPayload.name,'Олена');assert(!('fbclid' in paidPayload));
+assert.equal(withUtm({utm_source:'  '}).source,organic);
+assert.equal(withUtm({utm_medium:'cpc',utm_campaign:'quiz'}).source,organic);
+assert.equal(withUtm({utm_source:'telegram'}).source,via('Telegram'));
+assert.equal(withUtm({utm_source:'TikTok',utm_medium:'cpc'}).source,via('TikTok'));
+assert.equal(withUtm({utm_source:'FACEBOOK'}).source,via('Facebook'));
+assert.equal(withUtm({utm_source:'youtube'}).source,via('YouTube'));
+assert.equal(withUtm({utm_source:'partner_site'}).source,via('Partner_site'));
+assert.equal(withUtm({utm_source:'розсилка'}).source,via('Розсилка'));
+assert.equal(withUtm({utm_source:'telegram'}).nameform,organic);
+let tagged=withUtm({utm_source:' facebook ',utm_medium:'cpc',utm_campaign:'quiz',utm_content:'video1',utm_term:'бізнес',fbclid:'x',name:'Хтось'});
+assert.deepEqual(u.utmKeys.map(k=>tagged[k]),['facebook','cpc','quiz','video1','бізнес']);
+assert.equal(tagged.name,'Олена');assert(!('fbclid' in tagged));
 assert.deepEqual(u.readUtm({utm_source:{x:1},utm_medium:['a'],utm_term:'x'.repeat(500)}),{utm_source:'',utm_medium:'',utm_campaign:'',utm_content:'',utm_term:'x'.repeat(200)});
 assert.deepEqual(u.readUtm('junk'),u.readUtm(null));
 

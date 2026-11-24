@@ -1,10 +1,9 @@
 import type { FullReport as Report } from './ai-report';
-import { isPaidTraffic, readUtm, type Utm } from './utm';
+import { channelName, readUtm, type Utm } from './utm';
 import { directionFallback, directionNames, methodNote, previewDisclaimer, question, selected, subChoices, type Profile } from './engine';
-// The CRM shows this as both the form name and the lead source.
+// The form name; source is the same unless utm_source names the channel.
 const FORM='Заявка на консультацію: Квіз | Ніші — 21 запитання';
-// Source for visits that came from an ad campaign (two or more UTM tags).
-const PAID_SOURCE='ТРАФ|Квіз | Ніші — 21 запитання';
+const sourceFor=(utm:Utm)=>{const channel=channelName(utm);return channel?`Заявка на консультацію: ${channel} | Квіз | Ніші — 21 запитання`:FORM};
 const divider='━━━━━━━━━━━━━━━━━━━━',thinDivider='────────────────────';
 const block=(title:string,parts:string[])=>[divider,title,divider,'',parts.filter(Boolean).join('\n\n')].join('\n');
 export function answerText(step:number,p:Profile){
@@ -56,7 +55,7 @@ export function buildAiText(r:Report){
  ].join('\n\n');
 }
 export function buildLeadPayload(name:string,phone:string,p:Profile,report:Report,utm:Utm=readUtm(null)){
- const payload:Record<string,string>={name,phone:phone.replace(/^\+/,''),nameform:FORM,source:isPaidTraffic(utm)?PAID_SOURCE:FORM,...utm};
+ const payload:Record<string,string>={name,phone:phone.replace(/^\+/,''),nameform:FORM,source:sourceFor(utm),...utm};
  p.answers.forEach((_,step)=>{payload[`Q${step+1}`]=question(step,p).title;payload[`A${step+1}`]=answerText(step,p)});
  payload['Ai Text']=buildAiText(report);
  return payload;
