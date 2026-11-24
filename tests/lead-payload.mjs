@@ -29,7 +29,7 @@ assert.equal(branches.length,70);
 
 // Fixed fields and the digits-only phone format.
 let p=sample(),payload=send(p);
-assert.deepEqual([payload.name,payload.phone,payload.nameform,payload.source],['Олена','380671234567','заявка на бізнес-розбір','Заявка на бізнес-розбір (квіз 21 питання)']);
+assert.deepEqual([payload.name,payload.phone,payload.nameform,payload.source],['Олена','380671234567','Заявка на консультацію: Квіз | Ніші — 21 запитання','Заявка на консультацію: Квіз | Ніші — 21 запитання']);
 
 // Multiple choice joins the texts of every option in Q3 and Q21; the solo wording of Q21 is respected.
 p=sample(2,0);p=e.toggleSelection(p,2,0);p=e.toggleSelection(p,2,1);p=e.toggleSelection(p,20,6);p=e.toggleSelection(p,20,2);p=e.toggleSelection(p,20,4);

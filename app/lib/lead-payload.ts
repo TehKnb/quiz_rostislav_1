@@ -1,5 +1,7 @@
 import type { FullReport as Report } from './ai-report';
 import { directionFallback, directionNames, methodNote, previewDisclaimer, question, selected, subChoices, type Profile } from './engine';
+// The CRM shows this as both the form name and the lead source.
+const FORM='Заявка на консультацію: Квіз | Ніші — 21 запитання';
 const divider='━━━━━━━━━━━━━━━━━━━━',thinDivider='────────────────────';
 const block=(title:string,parts:string[])=>[divider,title,divider,'',parts.filter(Boolean).join('\n\n')].join('\n');
 export function answerText(step:number,p:Profile){
@@ -51,7 +53,7 @@ export function buildAiText(r:Report){
  ].join('\n\n');
 }
 export function buildLeadPayload(name:string,phone:string,p:Profile,report:Report){
- const payload:Record<string,string>={name,phone:phone.replace(/^\+/,''),nameform:'заявка на бізнес-розбір',source:'Заявка на бізнес-розбір (квіз 21 питання)'};
+ const payload:Record<string,string>={name,phone:phone.replace(/^\+/,''),nameform:FORM,source:FORM};
  p.answers.forEach((_,step)=>{payload[`Q${step+1}`]=question(step,p).title;payload[`A${step+1}`]=answerText(step,p)});
  payload['Ai Text']=buildAiText(report);
  return payload;
