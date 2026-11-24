@@ -47,6 +47,12 @@ assert.equal(paidPayload.name,'Олена');assert(!('fbclid' in paidPayload));
 assert.deepEqual(u.readUtm({utm_source:{x:1},utm_medium:['a'],utm_term:'x'.repeat(500)}),{utm_source:'',utm_medium:'',utm_campaign:'',utm_content:'',utm_term:'x'.repeat(200)});
 assert.deepEqual(u.readUtm('junk'),u.readUtm(null));
 
+// The phone field starts with «+380 »: the bare prefix is not a number, and numbers typed or pasted after it are cleaned up.
+assert.equal(e.normalizePhone('+380 '),null);
+for(const v of ['+380 671234567','+380 67 123 45 67','+380 0671234567','+380 380671234567','+380 +380671234567'])assert.equal(e.normalizePhone(v),'+380671234567',v);
+assert.equal(e.normalizePhone('+380 +48123456789'),'+48123456789');
+assert.equal(e.normalizePhone('+380 67123'),null);
+
 // Multiple choice joins the texts of every option in Q3 and Q21; the solo wording of Q21 is respected.
 p=sample(2,0);p=e.toggleSelection(p,2,0);p=e.toggleSelection(p,2,1);p=e.toggleSelection(p,20,6);p=e.toggleSelection(p,20,2);p=e.toggleSelection(p,20,4);
 payload=send(p);
