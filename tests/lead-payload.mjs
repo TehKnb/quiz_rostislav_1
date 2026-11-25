@@ -21,8 +21,8 @@ for(const b of branches){
  const p=sample(b.sectorIndex,b.teamIndex);p.auto=b.auto||'';if(b.sectorIndex===4&&!b.auto)p.auto='other';
  for(const q of b.questions)assert.deepEqual(e.question(q.index,p).title,q.title);
  const payload=send(p);
- assert.deepEqual(Object.keys(payload),['name','phone','nameform','source',...u.utmKeys,...Array.from({length:21},(_,i)=>[`Q${i+1}`,`A${i+1}`]).flat(),'Ai Text']);
- assert(Object.entries(payload).every(([k,x])=>typeof x==='string'&&(x.length>0||u.utmKeys.includes(k))));
+ assert.deepEqual(Object.keys(payload),['name','phone','nameform','source','sitename',...u.utmKeys,...Array.from({length:21},(_,i)=>[`Q${i+1}`,`A${i+1}`]).flat(),'Ai Text']);
+ assert(Object.entries(payload).every(([k,x])=>typeof x==='string'&&(x.length>0||u.utmKeys.includes(k)||k==='sitename')));
  b.questions.forEach(q=>{assert.equal(payload[`Q${q.number}`],q.title);if(q.index>0)assert(q.options.includes(payload[`A${q.number}`]),q.title);});
 }
 assert.equal(branches.length,70);
@@ -31,21 +31,27 @@ assert.equal(branches.length,70);
 let p=sample(),payload=send(p);
 assert.deepEqual([payload.name,payload.phone,payload.nameform,payload.source],['Олена','380671234567','Заявка на консультацію: Квіз | Ніші — 21 запитання','Заявка на консультацію: Квіз | Ніші — 21 запитання']);
 
-// UTM tags: utm_source names the channel in source; without it source is the form name. Every tag is passed through, junk is dropped.
-const organic='Заявка на консультацію: Квіз | Ніші — 21 запитання',via=c=>`Заявка на консультацію: ${c} | Квіз | Ніші — 21 запитання`;
+// UTM tags: one tag or none keeps the form name in source, two or more mark it as ТРАФ. Every tag is passed through, junk is dropped.
+const organic='Заявка на консультацію: Квіз | Ніші — 21 запитання',traffic='Заявка на консультацію: ТРАФ|Квіз | Ніші — 21 запитання';
 const withUtm=tags=>l.buildLeadPayload('Олена','+380671234567',sample(),e.result(sample()),u.readUtm(tags));
 assert.equal(send(sample()).source,organic);
 assert.deepEqual(u.utmKeys.map(k=>send(sample())[k]),['','','','','']);
 assert.equal(withUtm({}).source,organic);
 assert.equal(withUtm({utm_source:'  '}).source,organic);
-assert.equal(withUtm({utm_medium:'cpc',utm_campaign:'quiz'}).source,organic);
-assert.equal(withUtm({utm_source:'telegram'}).source,via('Telegram'));
-assert.equal(withUtm({utm_source:'TikTok',utm_medium:'cpc'}).source,via('TikTok'));
-assert.equal(withUtm({utm_source:'FACEBOOK'}).source,via('Facebook'));
-assert.equal(withUtm({utm_source:'youtube'}).source,via('YouTube'));
-assert.equal(withUtm({utm_source:'partner_site'}).source,via('Partner_site'));
-assert.equal(withUtm({utm_source:'розсилка'}).source,via('Розсилка'));
-assert.equal(withUtm({utm_source:'telegram'}).nameform,organic);
+assert.equal(withUtm({utm_source:'telegram'}).source,organic);
+assert.equal(withUtm({utm_campaign:'quiz'}).source,organic);
+assert.equal(withUtm({utm_source:'telegram',utm_medium:' '}).source,organic);
+assert.equal(withUtm({utm_medium:'cpc',utm_campaign:'quiz'}).source,traffic);
+assert.equal(withUtm({utm_source:'facebook',utm_medium:'cpc'}).source,traffic);
+assert.equal(withUtm({utm_source:'facebook',utm_medium:'cpc',utm_campaign:'quiz',utm_content:'v1',utm_term:'x'}).source,traffic);
+assert.equal(withUtm({utm_source:'facebook',utm_medium:'cpc'}).nameform,organic);
+// sitename is the site address passed by the route; empty when unknown.
+assert.equal(send(sample()).sitename,'');
+assert.equal(l.buildLeadPayload('Олена','+380671234567',sample(),e.result(sample()),u.readUtm(null),'https://quiz.example').sitename,'https://quiz.example');
+const so=load('same-origin');
+assert.equal(so.siteAddress(new Request('http://0.0.0.0:8080/api/leads',{headers:{host:'0.0.0.0:8080','x-forwarded-host':'quiz.example','x-forwarded-proto':'https'}})),'https://quiz.example');
+assert.equal(so.siteAddress(new Request('http://localhost:3201/api/leads',{headers:{host:'localhost:3201'}})),'http://localhost:3201');
+assert.equal(so.siteAddress(new Request('http://localhost/api/leads',{headers:{'x-forwarded-host':'evil.example/<script>'}})),'');
 let tagged=withUtm({utm_source:' facebook ',utm_medium:'cpc',utm_campaign:'quiz',utm_content:'video1',utm_term:'бізнес',fbclid:'x',name:'Хтось'});
 assert.deepEqual(u.utmKeys.map(k=>tagged[k]),['facebook','cpc','quiz','video1','бізнес']);
 assert.equal(tagged.name,'Олена');assert(!('fbclid' in tagged));

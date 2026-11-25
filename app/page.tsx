@@ -8,7 +8,7 @@ import { casesFor, hasNicheCases } from './lib/video-cases';
 import { VideoCases } from './video-cases';
 import { Reviews } from './reviews';
 import { captureUtm, storedUtm } from './lib/utm';
-import { trackLead, trackQuizStart } from './lib/pixel';
+import { trackLead, trackQuestion, trackQuizStart } from './lib/pixel';
 const Icons=[Target,TrendingUp,Users,ChartNoAxesColumnIncreasing];
 const key='knb-quiz-v3';
 const sendFailed='Не вдалося надіслати заявку. Перевірте з’єднання та спробуйте ще раз — ваші відповіді залишилися на сторінці.';
@@ -55,7 +55,7 @@ export default function Home(){
   personalizing.current=request;
   return request.done;
  }
- function next(p:Profile=profile){if(!validStep(step,p))return;if(step===1)personalize(p);if(step===2){const pending=personalize(p);if(pending){setWaiting(true);pending.finally(()=>{setWaiting(false);setStep(s=>s===2?3:s)});return}}if(step===20){const missing=p.answers.findIndex((_,i)=>!validStep(i,p));if(missing>=0)setStep(missing);else setView('result');}else setStep(step+1)}
+ function next(p:Profile=profile){if(!validStep(step,p))return;trackQuestion(step+1);if(step===1)personalize(p);if(step===2){const pending=personalize(p);if(pending){setWaiting(true);pending.finally(()=>{setWaiting(false);setStep(s=>s===2?3:s)});return}}if(step===20){const missing=p.answers.findIndex((_,i)=>!validStep(i,p));if(missing>=0)setStep(missing);else setView('result');}else setStep(step+1)}
  // Keeps the caret in place when a digit is edited in the middle of the number.
  function changePhone(e:React.ChangeEvent<HTMLInputElement>){const el=e.target,raw=el.value,caret=el.selectionStart??raw.length,next=formatPhone(raw);setPhone(next);if(caret>=raw.length)return;let n=raw.slice(caret).replace(/\D/g,'').length,pos=next.length;while(n>0&&pos>phonePrefix.length){pos--;if(/\d/.test(next[pos]))n--}setTimeout(()=>{if(document.activeElement===el)el.setSelectionRange(pos,pos)})}
  async function submit(e:React.FormEvent,at:'offer'|'bottom'){e.preventDefault();if(submitting.current)return;setLeadAt(at);setError('');if(!normalizeName(name)){setError('Введіть ваше ім’я.');return}if(!normalizePhone(phone)){setError('Введіть номер повністю: +380 та 9 цифр.');return}submitting.current=true;setBusy(true);try{if(!id.current){const b=crypto.getRandomValues(new Uint8Array(16));b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const h=Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');id.current=[h.slice(0,8),h.slice(8,12),h.slice(12,16),h.slice(16,20),h.slice(20)].join('-');}const res=await fetch('/api/leads',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id.current,name,phone,profile,utm:storedUtm()})});const data=await res.json().catch(()=>null) as {error?:string;report?:Report;id:string}|null;if(!res.ok||!data?.report){setError(data?.error||sendFailed);return}setServerReport(data.report);setReceipt(data.id);setUnlocked(true);trackLead(data.id);setName('');setPhone(phonePrefix);setTimeout(()=>document.getElementById('conclusion')?.scrollIntoView({behavior:'smooth',block:'start'}),150);}catch{setError(sendFailed)}finally{submitting.current=false;setBusy(false)}}
