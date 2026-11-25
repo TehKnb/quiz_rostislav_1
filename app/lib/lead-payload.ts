@@ -1,9 +1,9 @@
 import type { FullReport as Report } from './ai-report';
 import { readUtm, utmKeys, type Utm } from './utm';
 import { directionFallback, directionNames, methodNote, previewDisclaimer, question, selected, subChoices, type Profile } from './engine';
-// The form name; source is the same for a visit with one UTM tag or none, and marks paid traffic (two or more tags) as ТРАФ.
-const FORM='Заявка на консультацію: Квіз | Ніші — 21 запитання',TRAFFIC='Заявка на консультацію: ТРАФ|Квіз | Ніші — 21 запитання';
-const sourceFor=(utm:Utm)=>utmKeys.filter(k=>utm[k]).length>1?TRAFFIC:FORM;
+// nameform and source carry the same name: paid traffic (two or more UTM tags) is marked ТРАФ, one tag or none keeps the plain form name.
+const FORM='Заявка на консультацію: Квіз | Ніші — 21 запитання',TRAFFIC='Заявка на консультацію: ТРАФ | Квіз | Ніші — 21 запитання';
+const formName=(utm:Utm)=>utmKeys.filter(k=>utm[k]).length>1?TRAFFIC:FORM;
 const divider='━━━━━━━━━━━━━━━━━━━━',thinDivider='────────────────────';
 const block=(title:string,parts:string[])=>[divider,title,divider,'',parts.filter(Boolean).join('\n\n')].join('\n');
 export function answerText(step:number,p:Profile){
@@ -56,7 +56,7 @@ export function buildAiText(r:Report){
 }
 // sitename is the address of the site the lead was sent from, such as https://quizrostislav1-production.up.railway.app.
 export function buildLeadPayload(name:string,phone:string,p:Profile,report:Report,utm:Utm=readUtm(null),sitename=''){
- const payload:Record<string,string>={name,phone:phone.replace(/^\+/,''),nameform:FORM,source:sourceFor(utm),sitename,...utm};
+ const payload:Record<string,string>={name,phone:phone.replace(/^\+/,''),nameform:formName(utm),source:formName(utm),sitename,...utm};
  p.answers.forEach((_,step)=>{payload[`Q${step+1}`]=question(step,p).title;payload[`A${step+1}`]=answerText(step,p)});
  payload['Ai Text']=buildAiText(report);
  return payload;

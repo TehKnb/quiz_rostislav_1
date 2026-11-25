@@ -31,8 +31,8 @@ assert.equal(branches.length,70);
 let p=sample(),payload=send(p);
 assert.deepEqual([payload.name,payload.phone,payload.nameform,payload.source],['Олена','380671234567','Заявка на консультацію: Квіз | Ніші — 21 запитання','Заявка на консультацію: Квіз | Ніші — 21 запитання']);
 
-// UTM tags: one tag or none keeps the form name in source, two or more mark it as ТРАФ. Every tag is passed through, junk is dropped.
-const organic='Заявка на консультацію: Квіз | Ніші — 21 запитання',traffic='Заявка на консультацію: ТРАФ|Квіз | Ніші — 21 запитання';
+// UTM tags: one tag or none keeps the form name in nameform and source, two or more mark both as ТРАФ. Every tag is passed through, junk is dropped.
+const organic='Заявка на консультацію: Квіз | Ніші — 21 запитання',traffic='Заявка на консультацію: ТРАФ | Квіз | Ніші — 21 запитання';
 const withUtm=tags=>l.buildLeadPayload('Олена','+380671234567',sample(),e.result(sample()),u.readUtm(tags));
 assert.equal(send(sample()).source,organic);
 assert.deepEqual(u.utmKeys.map(k=>send(sample())[k]),['','','','','']);
@@ -44,7 +44,8 @@ assert.equal(withUtm({utm_source:'telegram',utm_medium:' '}).source,organic);
 assert.equal(withUtm({utm_medium:'cpc',utm_campaign:'quiz'}).source,traffic);
 assert.equal(withUtm({utm_source:'facebook',utm_medium:'cpc'}).source,traffic);
 assert.equal(withUtm({utm_source:'facebook',utm_medium:'cpc',utm_campaign:'quiz',utm_content:'v1',utm_term:'x'}).source,traffic);
-assert.equal(withUtm({utm_source:'facebook',utm_medium:'cpc'}).nameform,organic);
+assert.equal(withUtm({utm_source:'facebook',utm_medium:'cpc'}).nameform,traffic);
+assert.equal(withUtm({utm_source:'telegram'}).nameform,organic);
 // sitename is the site address passed by the route; empty when unknown.
 assert.equal(send(sample()).sitename,'');
 assert.equal(l.buildLeadPayload('Олена','+380671234567',sample(),e.result(sample()),u.readUtm(null),'https://quiz.example').sitename,'https://quiz.example');
