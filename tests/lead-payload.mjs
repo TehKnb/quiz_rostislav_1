@@ -57,6 +57,11 @@ assert.equal(e.normalizePhone('+380 '),null);
 for(const v of ['+380 671234567','+380 67 123 45 67','+380 0671234567','+380 380671234567','+380 +380671234567'])assert.equal(e.normalizePhone(v),'+380671234567',v);
 assert.equal(e.normalizePhone('+380 +48123456789'),'+48123456789');
 assert.equal(e.normalizePhone('+380 67123'),null);
+// The field mask: «+380 (XX) XXX-XX-XX», at most 9 digits after +380; separators only before a digit.
+for(const [v,want] of [['','+380 '],['+380','+380 '],['+380 ','+380 '],['+380 6','+380 (6'],['+380 (67','+380 (67'],['+380 (67)','+380 (67'],['+380 (67) ','+380 (67'],['+380 (67)1','+380 (67) 1'],['+380 (67) 12345','+380 (67) 123-45'],['+380 (67) 123-456','+380 (67) 123-45-6'],
+ ['+380 (67) 123-45-678','+380 (67) 123-45-67'],['+380 (67) 123-45-67','+380 (67) 123-45-67'],['+380 0','+380 '],['+380 0671234567','+380 (67) 123-45-67'],['0671234567','+380 (67) 123-45-67'],['380671234567','+380 (67) 123-45-67'],['+380 +380671234567','+380 (67) 123-45-67'],['+38 (067) 123 45 67','+380 (67) 123-45-67']])assert.equal(e.formatPhone(v),want,v);
+assert.equal(e.normalizePhone(e.formatPhone('0671234567')),'+380671234567');
+assert.equal(e.normalizePhone(e.formatPhone('067123')),null);
 
 // Multiple choice joins the texts of every option in Q3 and Q21; the solo wording of Q21 is respected.
 p=sample(2,0);p=e.toggleSelection(p,2,0);p=e.toggleSelection(p,2,1);p=e.toggleSelection(p,20,6);p=e.toggleSelection(p,20,2);p=e.toggleSelection(p,20,4);

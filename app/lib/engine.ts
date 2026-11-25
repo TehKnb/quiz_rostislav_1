@@ -172,4 +172,15 @@ export function result(p:Profile){const ss=scores(p),priorities=priority(p,ss),g
 }
 export function normalizeName(value:string){const s=value.replace(/\s+/g,' ').trim();return s.length>=2&&s.length<=80&&/\p{L}/u.test(s)&&!/[\u0000-\u001f<>]|[\u{10000}-\u{10FFFF}]/u.test(s)?s:null}
 // The field starts with «+380 », so a number typed or pasted after it may repeat the code or keep the leading 0.
+// The phone field only takes a Ukrainian number: «+380 (XX) XXX-XX-XX», 9 digits after +380.
+// Typed or pasted 0XX…, 380… and +380… are reduced to those 9 digits; separators appear only before a digit, so Backspace never gets stuck.
+export const phonePrefix='+380 ';
+export function formatPhone(value:string){
+ let d=value.replace(/\D/g,'');
+ if(d.startsWith('380'))d=d.slice(3);
+ if(d.length>9&&d.startsWith('380'))d=d.slice(3);
+ d=d.replace(/^0+/,'').slice(0,9);
+ if(!d)return phonePrefix;
+ return phonePrefix+'('+d.slice(0,2)+(d.length>2?') '+d.slice(2,5):'')+(d.length>5?'-'+d.slice(5,7):'')+(d.length>7?'-'+d.slice(7):'');
+}
 export function normalizePhone(value:string){let s=value.replace(/[\s().-]/g,'').replace(/^\+380(?=\+)/,'');if(/^\+380(0\d{9}|380\d{9})$/.test(s))s='+380'+s.slice(-9);if(/^0\d{9}$/.test(s))s='+38'+s;if(/^380\d{9}$/.test(s))s='+'+s;return /^\+[1-9]\d{9,14}$/.test(s)&&!/^\+(\d)\1+$/.test(s)?s:null}
