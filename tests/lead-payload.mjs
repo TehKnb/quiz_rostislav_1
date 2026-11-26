@@ -198,4 +198,24 @@ assert(asked({host:'QUIZ.up.railway.app'},'https://quiz.up.railway.app'));
 assert(asked({host:'localhost:3000'},'http://localhost:3000'));
 for(const origin of ['https://evil.example','null','not a url',null,'https://quiz.up.railway.app.evil.example'])assert(!asked({host:'quiz.up.railway.app'},origin),String(origin));
 assert(!asked({},'https://quiz.up.railway.app'));
+// Telegram bot link: tg and sig are passed on exactly as they came; anything else means there is no link.
+const bl=load('bot-link'),bot=load('bot-lead');
+assert.deepEqual(bl.readBotLink({tg:'622977396',sig:'3f9a0c1d2e3f4a5b6c7d8e9f0a1b2c3d'}),{tg:'622977396',sig:'3f9a0c1d2e3f4a5b6c7d8e9f0a1b2c3d'});
+assert.deepEqual(bl.readBotLink({tg:'123',sig:'test'}),{tg:'123',sig:'test'});
+for(const x of [null,{},{tg:'123'},{sig:'test'},{tg:' 123',sig:'test'},{tg:'12a',sig:'test'},{tg:123,sig:'test'},{tg:'123',sig:''},{tg:'123',sig:'a b'},{tg:'123',sig:'x'.repeat(129)}])assert.equal(bl.readBotLink(x),null,JSON.stringify(x));
+// The bot request carries tg, sig, phone and name, and a failing bot never throws.
+{
+ const realFetch=globalThis.fetch,realWarn=console.warn,realInfo=console.info,logs=[];let sent;
+ console.warn=console.info=m=>logs.push(String(m));
+ globalThis.fetch=async(url,init)=>{sent={url,init};return new Response(JSON.stringify({ok:false,error:'bad signature'}),{status:400})};
+ await bot.notifyBot({tg:'123',sig:'test'},'+380671234567','Олена');
+ assert.equal(sent.url,'https://primary-production-4180.up.railway.app/webhook/kb-quiz-lead');
+ assert.equal(sent.init.method,'POST');assert.equal(sent.init.headers['Content-Type'],'application/json');
+ assert.deepEqual(JSON.parse(sent.init.body),{tg:'123',sig:'test',phone:'+380671234567',name:'Олена'});
+ globalThis.fetch=async()=>new Response('{"ok":true}',{status:200});await bot.notifyBot({tg:'1',sig:'s'},'+380671234567','');
+ globalThis.fetch=async()=>{throw new TypeError('network')};await bot.notifyBot({tg:'1',sig:'s'},'+380671234567','');
+ assert.deepEqual(logs,['kb-quiz-lead: HTTP 400 (bad signature)','kb-quiz-lead: ok','kb-quiz-lead request failed:']);
+ assert(!logs.join().includes('380671234567'));
+ globalThis.fetch=realFetch;console.warn=realWarn;console.info=realInfo;
+}
 console.log(`Lead payload checked on ${branches.length} branches and ${fixtures.length} fixtures; video cases checked for ${v.casesBySector.length} sectors.`);

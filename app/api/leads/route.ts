@@ -1,4 +1,7 @@
+import { after } from 'next/server';
 import { withAi } from '../../lib/ai-generate';
+import { notifyBot } from '../../lib/bot-lead';
+import { readBotLink } from '../../lib/bot-link';
 import { normalizeName, normalizePhone, validateProfile } from '../../lib/engine';
 import { buildLeadPayload } from '../../lib/lead-payload';
 import { sameOrigin, siteAddress } from '../../lib/same-origin';
@@ -23,6 +26,8 @@ export async function POST(req:Request){
   const res=await fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json; charset=utf-8','Idempotency-Key':id},body:JSON.stringify(buildLeadPayload(name,phone,body.profile,report,readUtm(body.utm),siteAddress(req))),redirect:'manual',signal:AbortSignal.timeout(WEBHOOK_TIMEOUT_MS)});
   await res.body?.cancel();
   if(!res.ok){console.error(`Lead webhook responded with HTTP ${res.status}`);return unavailable()}
+  // Runs after the response is sent, so the bot never delays or breaks the lead.
+  const bot=readBotLink(body.bot);if(bot)after(()=>notifyBot(bot,phone,name));
   return Response.json({id,report},{headers:{'Cache-Control':'no-store'}});
  }catch(e){console.error('Lead webhook request failed:',e instanceof Error?e.name:'unknown error');return unavailable()}
 }
